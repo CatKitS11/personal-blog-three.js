@@ -1,8 +1,7 @@
 import React from "react";
 import "./App.css";
 import NavBar from "./components/NavBar";
-import HeroSection from "./components/HeroSection";
-import { Button } from "@/components/ui/button"
+import HeroSection from "@/components/HeroSection";
 import ArticleSection from "./components/ArticleSection";
 import Footer from "./components/Footer";
 

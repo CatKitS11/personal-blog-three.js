@@ -1,6 +1,8 @@
 import { Search } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import BlogCard from "@/components/BlogCard";
+import { blogPosts } from "@/data/blogPosts";
 
 const ArticleSection = () => {
   return (
@@ -20,8 +22,16 @@ const ArticleSection = () => {
           </Tabs>
         </div>
         <div className="flex items-center justify-center">
-            <input className="w-full bg-white" placeholder="Search" /><Button variant="outline"><Search /></Button>
+          <input className="w-full bg-white" placeholder="Search" />
+          <Button variant="outline">
+            <Search />
+          </Button>
         </div>
+      </div>
+      <div className="flex flex-row flex-wrap gap-4">
+        {blogPosts.map((post) => (
+          <BlogCard key={post.id} {...post} className="w-[calc(50%-0.5rem)] max-xs:w-full" />
+        ))}
       </div>
     </div>
   );
