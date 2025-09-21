@@ -10,7 +10,6 @@ const ArticleSection = () => {
   const categories = ["Highlight", "Cat", "Inspiration", "General"];
   const [selectedCategory, setSelectedCategory] = useState("Highlight");
   
-  // ไม่ส่ง category parameter ไปยัง useBlogPosts
   const { 
     posts, 
     loading, 
@@ -18,11 +17,11 @@ const ArticleSection = () => {
     pagination, 
     changeCategory, 
     changePage 
-  } = useBlogPosts(); // ลบ { category: selectedCategory }
+  } = useBlogPosts();
 
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
-    changeCategory(category); // ใช้ client-side filtering แทน
+    changeCategory(category);
   };
 
   const handlePageChange = (page) => {
@@ -81,7 +80,12 @@ const ArticleSection = () => {
         <>
           <div className="flex flex-row flex-wrap gap-4">
             {posts.map((post) => (
-              <BlogCard key={post.id} {...post} className="w-[calc(50%-0.5rem)] max-xs:w-full" />
+              <BlogCard 
+                key={post.id} 
+                id={post.id}
+                {...post} 
+                className="w-[calc(50%-0.5rem)] max-xs:w-full" 
+              />
             ))}
           </div>
           
