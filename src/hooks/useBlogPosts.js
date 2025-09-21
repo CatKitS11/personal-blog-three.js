@@ -1,5 +1,16 @@
 import { useState, useEffect } from 'react';
-import { fetchBlogPosts } from '../services/blogApi';
+import axios from 'axios';
+
+const API_BASE_URL = 'https://blog-post-project-api.vercel.app';
+
+// สร้าง axios instance
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 export const useBlogPosts = (initialParams = {}) => {
   const [allPosts, setAllPosts] = useState([]); // เก็บข้อมูลทั้งหมด
@@ -20,9 +31,14 @@ export const useBlogPosts = (initialParams = {}) => {
     setError(null);
     
     try {
-      // Fetch ข้อมูลทั้งหมดโดยไม่ส่ง category parameter
-      const data = await fetchBlogPosts({ limit: 100 }); // เพิ่ม limit เพื่อให้ได้ข้อมูลทั้งหมด
+      // ใช้ axios โดยตรงแทน fetchBlogPosts
+      const response = await apiClient.get('/posts', {
+        params: {
+          limit: 100 // เพิ่ม limit เพื่อให้ได้ข้อมูลทั้งหมด
+        }
+      });
       
+      const data = response.data;
       setAllPosts(data.posts || []);
       setParams({ category: 'Highlight', page: 1 });
       
