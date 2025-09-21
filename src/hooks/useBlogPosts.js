@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { fetchBlogPosts } from '../services/blogApi';
 
 export const useBlogPosts = (initialParams = {}) => {
-  const [posts, setPosts] = useState([]);
+  const [allPosts, setAllPosts] = useState([]); // เก็บข้อมูลทั้งหมด
+  const [posts, setPosts] = useState([]); // ข้อมูลที่แสดง
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
@@ -13,46 +14,74 @@ export const useBlogPosts = (initialParams = {}) => {
   });
   const [params, setParams] = useState(initialParams);
 
-  const loadPosts = async (newParams = {}) => {
+  // Fetch ข้อมูลครั้งเดียวตอนเปิดหน้า
+  const loadPosts = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      const mergedParams = { ...params, ...newParams };
-      const data = await fetchBlogPosts(mergedParams);
+      // Fetch ข้อมูลทั้งหมดโดยไม่ส่ง category parameter
+      const data = await fetchBlogPosts({ limit: 100 }); // เพิ่ม limit เพื่อให้ได้ข้อมูลทั้งหมด
       
-      setPosts(data.posts || []);
-      setPagination({
-        currentPage: data.currentPage || 1,
-        totalPages: data.totalPages || 1,
-        totalPosts: data.totalPosts || 0,
-        postsPerPage: data.postsPerPage || 6
-      });
-      setParams(mergedParams);
+      setAllPosts(data.posts || []);
+      setParams({ category: 'Highlight', page: 1 });
+      
+      // Filter ข้อมูลตาม category ที่เลือก
+      filterPostsByCategory(data.posts || [], 'Highlight', 1);
+      
     } catch (err) {
       setError(err.message);
+      setAllPosts([]);
       setPosts([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // Filter ข้อมูลตาม category และ page
+  const filterPostsByCategory = (postsToFilter, category, page = 1) => {
+    let filteredPosts = postsToFilter;
+    
+    // Filter ตาม category
+    if (category && category !== 'Highlight') {
+      filteredPosts = postsToFilter.filter(post => post.category === category);
+    }
+    
+    // Pagination
+    const postsPerPage = 6;
+    const startIndex = (page - 1) * postsPerPage;
+    const endIndex = startIndex + postsPerPage;
+    const paginatedPosts = filteredPosts.slice(startIndex, endIndex);
+    
+    setPosts(paginatedPosts);
+    setPagination({
+      currentPage: page,
+      totalPages: Math.ceil(filteredPosts.length / postsPerPage),
+      totalPosts: filteredPosts.length,
+      postsPerPage: postsPerPage
+    });
+  };
+
   const changePage = (page) => {
-    loadPosts({ page });
+    const currentCategory = params.category || 'Highlight';
+    filterPostsByCategory(allPosts, currentCategory, page);
+    setParams(prev => ({ ...prev, page }));
   };
 
   const changeCategory = (category) => {
-    loadPosts({ category, page: 1 }); // Reset to page 1 when changing category
+    filterPostsByCategory(allPosts, category, 1); // Reset to page 1 when changing category
+    setParams(prev => ({ ...prev, category, page: 1 }));
   };
 
   const changeLimit = (limit) => {
-    loadPosts({ limit, page: 1 }); // Reset to page 1 when changing limit
+    // ไม่ต้องใช้เพราะเราใช้ client-side pagination
+    console.log('Limit change not implemented for client-side filtering');
   };
 
-  // Load posts on mount and when params change
+  // Load posts on mount only
   useEffect(() => {
     loadPosts();
-  }, []);
+  }, []); // Empty dependency array - only run once
 
   return {
     posts,
@@ -64,6 +93,6 @@ export const useBlogPosts = (initialParams = {}) => {
     changePage,
     changeCategory,
     changeLimit,
-    refetch: () => loadPosts(params)
+    refetch: loadPosts
   };
 };

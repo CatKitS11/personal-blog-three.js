@@ -10,6 +10,7 @@ const ArticleSection = () => {
   const categories = ["Highlight", "Cat", "Inspiration", "General"];
   const [selectedCategory, setSelectedCategory] = useState("Highlight");
   
+  // ไม่ส่ง category parameter ไปยัง useBlogPosts
   const { 
     posts, 
     loading, 
@@ -17,11 +18,11 @@ const ArticleSection = () => {
     pagination, 
     changeCategory, 
     changePage 
-  } = useBlogPosts({ category: selectedCategory });
+  } = useBlogPosts(); // ลบ { category: selectedCategory }
 
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
-    changeCategory(category);
+    changeCategory(category); // ใช้ client-side filtering แทน
   };
 
   const handlePageChange = (page) => {
