@@ -47,7 +47,7 @@ const BlogDetail = () => {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Main Content */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 markdown">
           {/* Post Image */}
           <div className="mb-8">
             <img
@@ -84,7 +84,7 @@ const BlogDetail = () => {
           </div>
 
           {/* Post Content */}
-          <div className="prose prose-lg max-w-none">
+          <div className="prose prose-lg max-w-none text-left">
             <ReactMarkdown>
               {post.content}
             </ReactMarkdown>
@@ -94,7 +94,7 @@ const BlogDetail = () => {
           <LikeAndShareBar postId={postId} likes={post.likes || 0} />
 
           {/* Comments */}
-          <CommentPost postId={postId} />
+          <CommentPost postId={postId} className=""/>
         </div>
 
         {/* Sidebar */}

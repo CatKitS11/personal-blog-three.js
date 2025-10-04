@@ -89,44 +89,18 @@ const ArticleSection = () => {
             ))}
           </div>
           
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div className="flex justify-center items-center mt-8 gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => handlePageChange(pagination.currentPage - 1)}
-                disabled={pagination.currentPage === 1}
-              >
-                Previous
-              </Button>
-              
-              <div className="flex gap-1">
-                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    variant={page === pagination.currentPage ? "default" : "outline"}
-                    onClick={() => handlePageChange(page)}
-                    className="w-10 h-10"
-                  >
-                    {page}
-                  </Button>
-                ))}
-              </div>
-              
+          {/* Replace pagination with View More button */}
+          {pagination.currentPage < pagination.totalPages && (
+            <div className="flex justify-center mt-8 mb-8">
               <Button 
                 variant="outline" 
                 onClick={() => handlePageChange(pagination.currentPage + 1)}
-                disabled={pagination.currentPage === pagination.totalPages}
+                className="px-6 py-2"
               >
-                Next
+                View more
               </Button>
             </div>
           )}
-          
-          {/* Posts count info */}
-          <div className="text-center text-sm text-gray-500 mt-4">
-            Showing {posts.length} of {pagination.totalPosts} posts
-          </div>
         </>
       )}
     </div>
