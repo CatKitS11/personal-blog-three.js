@@ -10,6 +10,21 @@ function BlogCard({
   date,
   className,
 }) {
+  // Format date
+  const formatDate = (dateString) => {
+    // If it's a date object or ISO string, format it
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString; // fallback to original if formatting fails
+    }
+  };
   return (
       <div className={`flex flex-col gap-4 ${className || ''}`}>
         <Link to={`/post/${id}`} className="relative h-[212px] sm:h-[360px]">
@@ -41,7 +56,7 @@ function BlogCard({
             />
             <span>{author}</span>
             <span className="mx-2 text-gray-300">|</span>
-            <span>{date}</span>
+            <span>{formatDate(date)}</span>
           </div>
         </div>
       </div>
