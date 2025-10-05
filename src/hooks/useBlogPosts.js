@@ -109,6 +109,7 @@ export const useBlogPosts = (initialParams = {}) => {
     changePage,
     changeCategory,
     changeLimit,
-    refetch: loadPosts
+    refetch: loadPosts,
+    allPosts,
   };
 };

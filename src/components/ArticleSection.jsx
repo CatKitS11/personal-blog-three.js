@@ -3,21 +3,42 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import BlogCard from "@/components/BlogCard";
 import { CategoryCombobox } from "@/components/Combobox";
-import { useState } from "react";
+import { useState, useMemo } from "react"; // [changed] เพิ่ม useMemo
 import { useBlogPosts } from "@/hooks/useBlogPosts";
+
+import { useNavigate } from "react-router-dom"; // [changed] นำทางเมื่อเลือกผลค้นหา
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"; // [changed] สำหรับกล่องผลลัพธ์
+import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from "@/components/ui/command"; // [changed] รายการค้นหา
 
 const ArticleSection = () => {
   const categories = ["Highlight", "Cat", "Inspiration", "General"];
   const [selectedCategory, setSelectedCategory] = useState("Highlight");
   
   const { 
-    posts, 
-    loading, 
-    error, 
-    pagination, 
-    changeCategory, 
-    changePage 
+    posts,
+    loading,
+    error,
+    pagination,
+    changeCategory,
+    changePage,
+    allPosts, 
   } = useBlogPosts();
+  
+  const navigate = useNavigate(); 
+  const [query, setQuery] = useState(""); 
+  const [openSearch, setOpenSearch] = useState(false); 
+  
+  const results = useMemo(() => { 
+    if (!query.trim()) return [];
+    const q = query.toLowerCase();
+    return (allPosts || [])
+      .filter(p =>
+        [p.title, p.description, p.content].some(t =>
+          (t || "").toLowerCase().includes(q)
+        )
+      )
+      .slice(0, 6);
+  }, [query, allPosts]);
 
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
@@ -56,12 +77,53 @@ const ArticleSection = () => {
             </TabsList>
           </Tabs>
         </div>
+        {/* Search autocomplete */}
         <div className="flex items-center justify-center max-xs:w-full">
-          <input className="w-full bg-white" placeholder="Search" />
-          <Button variant="outline">
-            <Search />
-          </Button>
+          <Popover open={openSearch} onOpenChange={setOpenSearch}> 
+            <PopoverTrigger asChild> 
+              <div className="relative w-72 max-xs:w-full"> 
+                <input
+                  className="w-full bg-white h-10 rounded-md px-3 border" 
+                  placeholder="Search"
+                  value={query} 
+                  onChange={(e) => { setQuery(e.target.value); setOpenSearch(true); }} 
+                  onFocus={() => query && setOpenSearch(true)} 
+                />
+                <button
+                  type="button"
+                  className="absolute right-1 top-1.5 px-2 py-1 border rounded-md" 
+                >
+                  <Search className="w-4 h-4" />
+                </button>
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="p-0 w-[28rem] max-xs:w-[calc(100vw-2rem)]" align="end"> 
+              <Command> 
+                {/* <CommandInput
+                  placeholder="Type to search…"
+                  value={query}
+                  onValueChange={setQuery}
+                /> */}
+                <CommandList>
+                  {results.map((p) => (
+                    <CommandItem
+                      key={p.id}
+                      onSelect={() => { 
+                        setOpenSearch(false);
+                        setQuery("");
+                        navigate(`/post/${p.id}`);
+                      }}
+                      className="cursor-pointer bg-white"
+                    >
+                      {p.title}
+                    </CommandItem>
+                  ))}
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
+        {/* end search */}
         <div className="hidden max-xs:flex items-center justify-center max-xs:w-full">
           <CategoryCombobox 
             value={selectedCategory} 
