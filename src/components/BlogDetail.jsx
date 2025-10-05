@@ -1,10 +1,10 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
-import CardAuthor from './CardAuthor';
-import LikeAndShareBar from './LikeAndShareBar';
-import CommentPost from './CommentPost';
-import { useBlogPost } from '../hooks/useBlogPostId';
+import React from "react";
+import { useParams } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
+import CardAuthor from "./CardAuthor";
+import LikeAndShareBar from "./LikeAndShareBar";
+import CommentPost from "./CommentPost";
+import { useBlogPost } from "../hooks/useBlogPostId";
 
 const BlogDetail = () => {
   const { postId } = useParams();
@@ -23,9 +23,11 @@ const BlogDetail = () => {
     return (
       <div className="flex justify-center items-center py-20">
         <div className="text-center">
-          <p className="text-red-500 text-lg mb-4">Error loading post: {error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <p className="text-red-500 text-lg mb-4">
+            Error loading post: {error}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
             className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
           >
             Try Again
@@ -44,18 +46,18 @@ const BlogDetail = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <div className="max-w-7xl mx-auto max-md:mx-0 max-md:max-w-full px-12 max-md:px-0 py-8">
+      <div className="mb-8">
+        <img
+          src={post.image || "/placeholder-image.jpg"}
+          alt={post.title}
+          className="w-full h-120 max-md:h-64 object-cover rounded-lg max-md:rounded-none"
+        />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-md:px-4">
         {/* Main Content */}
         <div className="lg:col-span-3 markdown">
           {/* Post Image */}
-          <div className="mb-8">
-            <img
-              src={post.image || '/placeholder-image.jpg'}
-              alt={post.title}
-              className="w-full h-64 lg:h-96 object-cover rounded-lg"
-            />
-          </div>
 
           {/* Post Meta */}
           <div className="mb-6">
@@ -64,19 +66,19 @@ const BlogDetail = () => {
                 {post.category}
               </span>
               <span className="text-gray-500 text-sm">
-                {new Date(post.createdAt).toLocaleDateString('en-GB', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric'
+                {new Date(post.createdAt).toLocaleDateString("en-GB", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
                 })}
               </span>
             </div>
-            
+
             {/* Post Title */}
             <h1 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-6">
               {post.title}
             </h1>
-            
+
             {/* Post Excerpt */}
             <p className="text-lg text-gray-600 leading-relaxed mb-8">
               {post.excerpt}
@@ -85,16 +87,14 @@ const BlogDetail = () => {
 
           {/* Post Content */}
           <div className="prose prose-lg max-w-none text-left">
-            <ReactMarkdown>
-              {post.content}
-            </ReactMarkdown>
+            <ReactMarkdown>{post.content}</ReactMarkdown>
           </div>
 
           {/* Like and Share Bar */}
           <LikeAndShareBar postId={postId} likes={post.likes || 0} />
 
           {/* Comments */}
-          <CommentPost postId={postId} className=""/>
+          <CommentPost postId={postId} className="" />
         </div>
 
         {/* Sidebar */}

@@ -26,7 +26,7 @@ function BlogCard({
     }
   };
   return (
-      <div className={`flex flex-col gap-4 ${className || ''}`}>
+      <div className={`flex flex-col gap-4 px-2 py-2 ${className || ''}`}>
         <Link to={`/post/${id}`} className="relative h-[212px] sm:h-[360px]">
           <img
             className="w-full h-full object-cover rounded-md"

@@ -13,10 +13,10 @@ const NavBar = () => {
   return (
     <nav className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
       {/* Logo */}
-      <div className="text-2xl font-bold text-gray-800">hh.</div>
+      <a href="/" className="text-2xl font-bold text-gray-800 mx-16 max-md:mx-2">hh.</a>
 
       {/* Navigation Buttons */}
-      <div className="flex max-xs:hidden items-center gap-4">
+      <div className="flex max-xs:hidden items-center gap-4 mx-16">
         <Button
           variant="outline"
           className="text-gray-700 border-gray-300 hover:bg-gray-50"

@@ -40,7 +40,7 @@ const ArticleSection = () => {
   }
 
   return (
-    <div>
+    <div className="px-2 w-full">
       <h1 className="text-2xl font-bold text-left font-poppins">
         Latest articles
       </h1>
