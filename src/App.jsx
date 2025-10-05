@@ -6,6 +6,7 @@ import Footer from "./components/Footer";
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import BlogDetail from './components/BlogDetail';
 import SignUp from './components/SignUp';
+import Login from './components/Login';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function AppInner() {
         } />
         <Route path="/post/:postId" element={<BlogDetail />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/login" element={<Login />} />
       </Routes>
       {!hideFooter && <Footer />}
     </div>

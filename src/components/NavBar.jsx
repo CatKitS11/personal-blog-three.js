@@ -16,16 +16,23 @@ const NavBar = () => {
   return (
     <nav className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
       {/* Logo */}
-      <a href="/" className="text-2xl font-bold text-gray-800 mx-16 max-md:mx-2">hh.</a>
+      <a
+        href="/"
+        className="text-2xl font-bold text-gray-800 mx-16 max-md:mx-2"
+      >
+        hh.
+      </a>
 
       {/* Navigation Buttons */}
       <div className="flex max-xs:hidden items-center gap-4 mx-16">
-        <Button
-          variant="outline"
-          className="text-gray-700 border-gray-300 hover:bg-gray-50 rounded-full"
-        >
-          Log in
-        </Button>
+        <Link to="/login">
+          <Button
+            variant="outline"
+            className="text-gray-700 border-gray-300 hover:bg-gray-50 rounded-full"
+          >
+            Log in
+          </Button>
+        </Link>
         <Link to="/signup">
           <Button className="bg-gray-800 text-white hover:bg-gray-700 rounded-full">
             Sign up
@@ -42,8 +49,12 @@ const NavBar = () => {
             />
           </SelectTrigger>
           <SelectContent className="flex flex-col gap-6 bg-white w-80 border-none shadow-none">
-            <SelectItem value="login" className="justify-center">Log in</SelectItem>
-            <SelectItem value="signup" className="justify-center">Sign up</SelectItem>
+            <SelectItem value="login" className="justify-center">
+              Log in
+            </SelectItem>
+            <SelectItem value="signup" className="justify-center">
+              Sign up
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
