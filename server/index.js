@@ -16,7 +16,7 @@ app.post('/api/posts', async (req, res) => { // EDIT: ใช้ Prisma แทน
             return res.status(400).json({ message: 'Server could not create post because there are missing data from client' });
         }
 
-        const post = await prisma.post.create({ // EDIT
+        const post = await prisma.posts.create({ // EDIT: เปลี่ยนจาก post เป็น posts
             data: { title, image, category_id, description, content, status_id }
         });
 

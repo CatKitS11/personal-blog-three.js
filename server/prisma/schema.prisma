@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,74 +8,65 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model User {
-  id          String    @id @default(uuid()) @db.Uuid
-  email       String    @unique
-  password    String
-  username    String    @unique
-  name        String?
-  profile_pic String?   @db.Text
-  role        String?
-  comments    Comment[]
-  likes       Like[]
+model categories {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique @db.VarChar
+  posts posts[]
 }
 
-model Post {
-  id          Int       @id @default(autoincrement())
-  image       String?   @db.Text
-  category_id Int?
-  title       String
-  description String?   @db.Text
-  date        DateTime? @db.Timestamp(6)
-  content     String?   @db.Text
-  status_id   Int?
-  likes_count Int       @default(0)
-
-  category Category? @relation(fields: [category_id], references: [id])
-  status   Status?   @relation(fields: [status_id], references: [id])
-  comments Comment[]
-  likes    Like[]
-
-  @@index([category_id])
-  @@index([status_id])
-}
-
-model Comment {
+model comments {
   id           Int      @id @default(autoincrement())
   post_id      Int
   user_id      String   @db.Uuid
-  comment_text String?  @db.Text
-  created_at   DateTime @default(now()) @db.Timestamp(6)
-
-  post Post @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@index([post_id])
-  @@index([user_id])
+  comment_text String?
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  posts        posts    @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users        users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
-model Like {
+model likes {
   id       Int      @id @default(autoincrement())
   post_id  Int
   user_id  String   @db.Uuid
-  liked_at DateTime @default(now()) @db.Timestamp(6)
+  liked_at DateTime @default(now()) @db.Timestamptz(6)
+  posts    posts    @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users    users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  post Post @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@unique([post_id, user_id])
-  @@index([post_id])
-  @@index([user_id])
+  @@unique([post_id, user_id], map: "likes_post_user_uniq")
 }
 
-model Category {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  posts Post[]
+model posts {
+  id          Int         @id @default(autoincrement())
+  image       String?
+  category_id Int?
+  title       String      @db.VarChar
+  description String?
+  date        DateTime?   @default(now()) @db.Timestamptz(6)
+  content     String?
+  status_id   Int?
+  likes_count Int         @default(0)
+  created_at  DateTime    @default(now()) @db.Timestamptz(6)
+  comments    comments[]
+  likes       likes[]
+  categories  categories? @relation(fields: [category_id], references: [id], onUpdate: NoAction)
+  statuses    statuses?   @relation(fields: [status_id], references: [id], onUpdate: NoAction)
 }
 
-model Status {
-  id     Int    @id @default(autoincrement())
-  status String @unique
-  posts  Post[]
+model statuses {
+  id     Int     @id @default(autoincrement())
+  status String  @unique @db.VarChar
+  posts  posts[]
+}
+
+model users {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email       String     @unique @db.VarChar
+  password    String     @db.VarChar
+  username    String     @unique @db.VarChar
+  name        String?    @db.VarChar
+  profile_pic String?
+  role        String?    @db.VarChar
+  created_at  DateTime   @default(now()) @db.Timestamptz(6)
+  comments    comments[]
+  likes       likes[]
 }
