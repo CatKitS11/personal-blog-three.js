@@ -1,5 +1,5 @@
 import { Router } from "express";
-import validatePostData from "../middleware/postValidation.mjs";
+import validatePostData from "../middlewares/postValidation.mjs";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
