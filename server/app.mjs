@@ -15,30 +15,93 @@ app.get('/test', (req, res) => {
 
 
 // Get all posts
-app.get('/api/getPosts', async (req, res) => {
+app.get('/posts', async (req, res) => {
   try {
+    // Get query parameters with defaults // EDIT: Add query params
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const category = req.query.category;
+    const keyword = req.query.keyword;
+    
+    // Calculate skip for pagination // EDIT: Calculate offset
+    const skip = (page - 1) * limit;
+    
+    // Build where clause for filtering // EDIT: Build filter conditions
+    const where = {};
+    
+    // Filter by category if provided // EDIT: Category filter
+    if (category) {
+      where.categories = {
+        name: category
+      };
+    }
+    
+    // Search by keyword in title, description, or content // EDIT: Keyword search
+    if (keyword) {
+      where.OR = [
+        { title: { contains: keyword, mode: 'insensitive' } },
+        { description: { contains: keyword, mode: 'insensitive' } },
+        { content: { contains: keyword, mode: 'insensitive' } }
+      ];
+    }
+    
+    // Get total count for pagination // EDIT: Count total posts
+    const totalPosts = await prisma.posts.count({ where });
+    
+    // Get posts with pagination // EDIT: Fetch posts with pagination
     const posts = await prisma.posts.findMany({
+      where,
+      skip,
+      take: limit,
       include: {
         categories: true,
         statuses: true
+      },
+      orderBy: {
+        date: 'desc' // EDIT: Order by date descending
       }
     });
-    return res.status(200).json({ posts });
+    
+    // Transform posts to flat structure // EDIT: Transform response
+    const transformedPosts = posts.map(post => ({
+      id: post.id,
+      image: post.image,
+      category: post.categories?.name || null,
+      title: post.title,
+      description: post.description,
+      date: post.date,
+      content: post.content,
+      status: post.statuses?.status || null,
+      likes_count: post.likes_count || 0
+    }));
+    
+    // Calculate pagination metadata // EDIT: Calculate pagination info
+    const totalPages = Math.ceil(totalPosts / limit);
+    const nextPage = page < totalPages ? page + 1 : null;
+    
+    // Return paginated response // EDIT: Return pagination response
+    return res.status(200).json({
+      totalPosts,
+      totalPages,
+      currentPage: page,
+      limit,
+      posts: transformedPosts,
+      nextPage
+    });
   } catch (err) {
     console.error('Get posts error:', err);
     return res.status(500).json({ 
-      message: 'Could not get posts',
-      error: err.message 
+      "message": "Server could not read post because database connection"
     });
   }
 });
 
 // Get single post
-app.get('/api/posts/:id', async (req, res) => {
+app.get('/posts/:postId', async (req, res) => {
   try {
-    const { id } = req.params;
+    const { postId } = req.params;
     const post = await prisma.posts.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: parseInt(postId) },
       include: {
         categories: true,
         statuses: true
@@ -78,24 +141,7 @@ app.post('/api/posts', async (req, res) => {
       return res.status(400).json({ "message": "Server could not create post because there are missing data from client" });
     }
 
-    return res.status(201).json({ "message": "Created post sucessfully" });
-  } catch (err) {
-    console.error('Create post error:', err);
-    return res.status(500).json({ 
-      message: 'Could not create post',
-      error: err.message 
-    });
-  }
-});
-
-// Update post
-app.put('/api/posts/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { title, image, category_id, description, content, status_id } = req.body;
-
-    const post = await prisma.posts.update({
-      where: { id: parseInt(id) },
+    const post = await prisma.posts.create({
       data: {
         title,
         image,
@@ -110,37 +156,56 @@ app.put('/api/posts/:id', async (req, res) => {
       }
     });
 
-    return res.status(200).json({ 
-      message: 'Post updated successfully',
-      post
-    });
+    return res.status(201).json({ "message": "Created post sucessfully" });
   } catch (err) {
-    if (err.code === 'P2025') {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-    console.error('Update post error:', err);
+    console.error('Create post error:', err);
     return res.status(500).json({ "message": "Server could not create post because database connection" });
   }
 });
 
-// Delete post
-app.delete('/api/posts/:id', async (req, res) => {
+// Update post
+app.put('/posts/:postId', async (req, res) => { // EDIT: Changed endpoint from /api/posts/:id to /posts/:postId
   try {
-    const { id } = req.params;
-    await prisma.posts.delete({
-      where: { id: parseInt(id) }
+    const { postId } = req.params; // EDIT: Changed param name from id to postId
+    const { title, image, category_id, description, content, status_id } = req.body;
+
+    const post = await prisma.posts.update({
+      where: { id: parseInt(postId) }, // EDIT: Use postId instead of id
+      data: {
+        title,
+        image,
+        category_id,
+        description,
+        content,
+        status_id
+      }
     });
 
-    return res.status(200).json({ message: 'Post deleted successfully' });
+    return res.status(200).json({ "message": "Updated post sucessfully" }); // EDIT: Return only message
   } catch (err) {
     if (err.code === 'P2025') {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ "message": "Server could not find a requested post to update" }); // EDIT: Updated 404 message
+    }
+    console.error('Update post error:', err);
+    return res.status(500).json({ "message": "Server could not update post because database connection" }); // EDIT: Updated 500 message
+  }
+});
+
+// Delete post
+app.delete('/posts/:postId', async (req, res) => {
+  try {
+    const { postId } = req.params;
+    await prisma.posts.delete({
+      where: { id: parseInt(postId) }
+    });
+
+    return res.status(200).json({ "message": "Deleted post sucessfully" });
+  } catch (err) {
+    if (err.code === 'P2025') {
+      return res.status(404).json({ "message": "Server could not find a requested post to delete" });
     }
     console.error('Delete post error:', err);
-    return res.status(500).json({ 
-      message: 'Could not delete post',
-      error: err.message 
-    });
+    return res.status(500).json({ "message": "Server could not delete post because database connection" });
   }
 });
 
