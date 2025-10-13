@@ -13,22 +13,6 @@ app.get('/test', (req, res) => {
   res.status(200).json({ message: 'API running' });
 });
 
-// Test database connection
-app.get('/api/health', async (req, res) => {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    res.status(200).json({ 
-      message: 'Database connected successfully',
-      time: new Date()
-    });
-  } catch (err) {
-    console.error('Database connection error:', err);
-    res.status(500).json({ 
-      message: 'Database connection failed',
-      error: err.message 
-    });
-  }
-});
 
 // Get all posts
 app.get('/api/getPosts', async (req, res) => {
@@ -57,31 +41,31 @@ app.get('/api/posts/:id', async (req, res) => {
       where: { id: parseInt(id) },
       include: {
         categories: true,
-        statuses: true,
-        comments: {
-          include: {
-            users: true
-          }
-        },
-        likes: {
-          include: {
-            users: true
-          }
-        }
+        statuses: true
       }
     });
     
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ "message": "Server could not find a requested post" });
     }
     
-    return res.status(200).json({ post });
+    // Transform response to match requirement // EDIT: Transform to flat structure
+    const response = {
+      id: post.id,
+      image: post.image,
+      category: post.categories?.name || null, // EDIT: Extract category name
+      title: post.title,
+      description: post.description,
+      date: post.date,
+      content: post.content,
+      status: post.statuses?.status || null, // EDIT: Extract status
+      likes_count: post.likes_count || 0 // EDIT: Include likes_count
+    };
+    
+    return res.status(200).json(response); // EDIT: Return flat object directly
   } catch (err) {
     console.error('Get post error:', err);
-    return res.status(500).json({ 
-      message: 'Could not get post',
-      error: err.message 
-    });
+    return res.status(500).json({ "message": "Server could not read post because database connection" });
   }
 });
 
@@ -91,28 +75,10 @@ app.post('/api/posts', async (req, res) => {
     const { title, image, category_id, description, content, status_id } = req.body;
     
     if (!title || !content) {
-      return res.status(400).json({ message: 'Title and content are required' });
+      return res.status(400).json({ "message": "Server could not create post because there are missing data from client" });
     }
 
-    const post = await prisma.posts.create({
-      data: {
-        title,
-        image,
-        category_id,
-        description,
-        content,
-        status_id
-      },
-      include: {
-        categories: true,
-        statuses: true
-      }
-    });
-
-    return res.status(201).json({ 
-      message: 'Post created successfully',
-      post
-    });
+    return res.status(201).json({ "message": "Created post sucessfully" });
   } catch (err) {
     console.error('Create post error:', err);
     return res.status(500).json({ 
@@ -153,10 +119,7 @@ app.put('/api/posts/:id', async (req, res) => {
       return res.status(404).json({ message: 'Post not found' });
     }
     console.error('Update post error:', err);
-    return res.status(500).json({ 
-      message: 'Could not update post',
-      error: err.message 
-    });
+    return res.status(500).json({ "message": "Server could not create post because database connection" });
   }
 });
 
