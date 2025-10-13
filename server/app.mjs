@@ -133,12 +133,53 @@ app.get('/posts/:postId', async (req, res) => {
 });
 
 // Create post
-app.post('/api/posts', async (req, res) => {
+app.post('/posts', async (req, res) => {
   try {
     const { title, image, category_id, description, content, status_id } = req.body;
     
-    if (!title || !content) {
-      return res.status(400).json({ "message": "Server could not create post because there are missing data from client" });
+    // Validate title // EDIT: Add title validation
+    if (!title) {
+      return res.status(400).json({ message: "Title is required" });
+    }
+    if (typeof title !== 'string') {
+      return res.status(400).json({ message: "Title must be a string" });
+    }
+
+    // Validate image // EDIT: Add image validation
+    if (!image) {
+      return res.status(400).json({ message: "Image is required" });
+    }
+    if (typeof image !== 'string') {
+      return res.status(400).json({ message: "Image must be a string" });
+    }
+
+    // Validate category_id // EDIT: Add category_id validation
+    if (category_id === undefined || category_id === null) {
+      return res.status(400).json({ message: "Category ID is required" });
+    }
+    if (typeof category_id !== 'number') {
+      return res.status(400).json({ message: "Category ID must be a number" });
+    }
+
+    // Validate description // EDIT: Add description validation
+    if (!description) {
+      return res.status(400).json({ message: "Description is required" });
+    }
+    if (typeof description !== 'string') {
+      return res.status(400).json({ message: "Description must be a string" });
+    }
+
+    // Validate content // EDIT: Add content validation
+    if (!content) {
+      return res.status(400).json({ message: "Content is required" });
+    }
+    if (typeof content !== 'string') {
+      return res.status(400).json({ message: "Content must be a string" });
+    }
+
+    // Validate status_id // EDIT: Add status_id validation
+    if (status_id !== undefined && status_id !== null && typeof status_id !== 'number') {
+      return res.status(400).json({ message: "Status ID must be a number" });
     }
 
     const post = await prisma.posts.create({
@@ -164,13 +205,58 @@ app.post('/api/posts', async (req, res) => {
 });
 
 // Update post
-app.put('/posts/:postId', async (req, res) => { // EDIT: Changed endpoint from /api/posts/:id to /posts/:postId
+app.put('/posts/:postId', async (req, res) => {
   try {
-    const { postId } = req.params; // EDIT: Changed param name from id to postId
+    const { postId } = req.params;
     const { title, image, category_id, description, content, status_id } = req.body;
 
+    // Validate title // EDIT: Add title validation
+    if (!title) {
+      return res.status(400).json({ message: "Title is required" });
+    }
+    if (typeof title !== 'string') {
+      return res.status(400).json({ message: "Title must be a string" });
+    }
+
+    // Validate image // EDIT: Add image validation
+    if (!image) {
+      return res.status(400).json({ message: "Image is required" });
+    }
+    if (typeof image !== 'string') {
+      return res.status(400).json({ message: "Image must be a string" });
+    }
+
+    // Validate category_id // EDIT: Add category_id validation
+    if (category_id === undefined || category_id === null) {
+      return res.status(400).json({ message: "Category ID is required" });
+    }
+    if (typeof category_id !== 'number') {
+      return res.status(400).json({ message: "Category ID must be a number" });
+    }
+
+    // Validate description // EDIT: Add description validation
+    if (!description) {
+      return res.status(400).json({ message: "Description is required" });
+    }
+    if (typeof description !== 'string') {
+      return res.status(400).json({ message: "Description must be a string" });
+    }
+
+    // Validate content // EDIT: Add content validation
+    if (!content) {
+      return res.status(400).json({ message: "Content is required" });
+    }
+    if (typeof content !== 'string') {
+      return res.status(400).json({ message: "Content must be a string" });
+    }
+
+    // Validate status_id // EDIT: Add status_id validation
+    if (status_id !== undefined && status_id !== null && typeof status_id !== 'number') {
+      return res.status(400).json({ message: "Status ID must be a number" });
+    }
+
     const post = await prisma.posts.update({
-      where: { id: parseInt(postId) }, // EDIT: Use postId instead of id
+      where: { id: parseInt(postId) },
       data: {
         title,
         image,
@@ -181,13 +267,13 @@ app.put('/posts/:postId', async (req, res) => { // EDIT: Changed endpoint from /
       }
     });
 
-    return res.status(200).json({ "message": "Updated post sucessfully" }); // EDIT: Return only message
+    return res.status(200).json({ "message": "Updated post sucessfully" });
   } catch (err) {
     if (err.code === 'P2025') {
-      return res.status(404).json({ "message": "Server could not find a requested post to update" }); // EDIT: Updated 404 message
+      return res.status(404).json({ "message": "Server could not find a requested post to update" });
     }
     console.error('Update post error:', err);
-    return res.status(500).json({ "message": "Server could not update post because database connection" }); // EDIT: Updated 500 message
+    return res.status(500).json({ "message": "Server could not update post because database connection" });
   }
 });
 
