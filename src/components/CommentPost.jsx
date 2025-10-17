@@ -56,37 +56,36 @@ const CommentPost = ({ postId }) => {
       
       {/* Comment Form */}
       <form onSubmit={handleSubmitComment} className="mb-8">
-        <div className="flex gap-3">
-          <textarea
+        <div className="flex flex-col gap-4">
+          <input
+            type="text"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="What are your thoughts?"
-            className="flex-1 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
-            rows={3}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
           />
-          <Button type="submit" className="self-end">
-            <Send className="w-4 h-4 mr-2" />
-            Send
+          <Button type="submit" className="self-start px-6">
+            Post Comment
           </Button>
         </div>
       </form>
 
       {/* Comments List */}
-      <div className="space-y-6">
+      <div className="space-y-8">
         {comments.map((comment) => (
-          <div key={comment.id} className="flex gap-4">
+          <div key={comment.id} className="flex items-start gap-4">
             {/* Avatar */}
-            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-sm font-medium text-gray-700">
+            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-lg font-bold text-gray-600">
                 {comment.avatar}
               </span>
             </div>
             
             {/* Comment Content */}
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <h4 className="font-medium text-gray-800">{comment.name}</h4>
-                <span className="text-sm text-gray-500">{comment.date}</span>
+              <div className="flex items-baseline gap-3 mb-1">
+                <h4 className="font-semibold text-gray-900">{comment.name}</h4>
+                <span className="text-xs text-gray-500">{comment.date}</span>
               </div>
               <p className="text-gray-700 leading-relaxed">{comment.content}</p>
             </div>
