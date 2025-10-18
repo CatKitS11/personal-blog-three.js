@@ -1,16 +1,31 @@
+import { useState, useEffect } from 'react';
 import { Search, Edit, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const mockArticles = [
-  { id: 1, title: 'Understanding Cat Behavior: Why Your Feline Friend Acts the Way They Do...', category: 'Cat', status: 'Published' },
-  { id: 2, title: 'The Fascinating World of Cats: Why We Love Our Furry Friends', category: 'Cat', status: 'Published' },
-  { id: 3, title: 'Finding Motivation: How to Stay Inspired Through Life’s Challenges', category: 'General', status: 'Published' },
-  { id: 4, title: 'The Science of the Cat’s Purr: How It Benefits Cats and Humans Alike', category: 'Cat', status: 'Published' },
-  { id: 5, title: 'Top 10 Health Tips to Keep Your Cat Happy and Healthy', category: 'Cat', status: 'Published' },
-  { id: 6, title: 'Unlocking Creativity: Simple Habits to Spark Inspiration Daily', category: 'Inspiration', status: 'Published' },
-];
+import axios from 'axios';
 
 const ArticleManagement = () => {
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('https://personal-blog-three-js-api.vercel.app/posts');
+        setArticles(response.data.posts);
+        setError(null);
+      } catch (err) {
+        setError('Failed to fetch articles. Please try again later.');
+        console.error("Error fetching articles:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticles();
+  }, []);
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -33,7 +48,6 @@ const ArticleManagement = () => {
             />
           </div>
           <div className="flex space-x-4">
-            {/* These would be dropdowns in a real app */}
             <select className="border rounded-md px-4 py-2">
               <option>Status</option>
               <option>Published</option>
@@ -41,6 +55,7 @@ const ArticleManagement = () => {
             </select>
             <select className="border rounded-md px-4 py-2">
               <option>Category</option>
+              {/* Categories should be populated from API in the future */}
               <option>Cat</option>
               <option>General</option>
               <option>Inspiration</option>
@@ -48,37 +63,48 @@ const ArticleManagement = () => {
           </div>
         </div>
 
-        <table className="w-full table-auto">
-          <thead>
-            <tr className="text-left text-gray-500">
-              <th className="pb-2 font-normal">Article title</th>
-              <th className="pb-2 font-normal">Category</th>
-              <th className="pb-2 font-normal">Status</th>
-              <th className="pb-2 font-normal"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {mockArticles.map((article) => (
-              <tr key={article.id} className="border-t">
-                <td className="py-4">{article.title}</td>
-                <td className="py-4">{article.category}</td>
-                <td className="py-4">
-                  <span className="text-green-600 bg-green-100 px-2 py-1 rounded-full text-sm">
-                    {article.status}
-                  </span>
-                </td>
-                <td className="py-4 flex justify-end space-x-2">
-                  <button className="text-gray-500 hover:text-gray-700">
-                    <Edit size={20} />
-                  </button>
-                  <button className="text-gray-500 hover:text-gray-700">
-                    <Trash2 size={20} />
-                  </button>
-                </td>
+        {loading && <p>Loading articles...</p>}
+        {error && <p className="text-red-500">{error}</p>}
+        
+        {!loading && !error && (
+          <table className="w-full table-auto">
+            <thead>
+              <tr className="text-left text-gray-500">
+                <th className="pb-2 font-normal">Article title</th>
+                <th className="pb-2 font-normal">Category</th>
+                <th className="pb-2 font-normal">Status</th>
+                <th className="pb-2 font-normal"></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {articles.map((article) => (
+                <tr key={article.id} className="border-t">
+                  <td className="py-4 pr-2">{article.title}</td>
+                  <td className="py-4 pr-2">{article.category}</td>
+                  <td className="py-4">
+                    <span className={`px-2 py-1 rounded-full text-sm ${
+                      article.status === 'Published' 
+                        ? 'text-green-700 bg-green-100' 
+                        : 'text-yellow-700 bg-yellow-100'
+                    }`}>
+                      {article.status || 'Draft'}
+                    </span>
+                  </td>
+                  <td className="py-4 flex justify-end space-x-2">
+                    <Link to={`/admin/article-management/edit/${article.id}`}>
+                      <button className="text-gray-500 hover:text-gray-700">
+                        <Edit size={20} />
+                      </button>
+                    </Link>
+                    <button className="text-gray-500 hover:text-gray-700">
+                      <Trash2 size={20} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
