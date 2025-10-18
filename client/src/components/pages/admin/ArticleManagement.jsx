@@ -1,4 +1,5 @@
 import { Search, Edit, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const mockArticles = [
   { id: 1, title: 'Understanding Cat Behavior: Why Your Feline Friend Acts the Way They Do...', category: 'Cat', status: 'Published' },
@@ -14,9 +15,11 @@ const ArticleManagement = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Article management</h1>
-        <button className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800">
-          + Create article
-        </button>
+        <Link to="/admin/article-management/create">
+          <button className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800">
+            + Create article
+          </button>
+        </Link>
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-sm">

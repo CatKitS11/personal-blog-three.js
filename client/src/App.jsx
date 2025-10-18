@@ -14,6 +14,7 @@ import CategoryManagement from "@/components/pages/admin/CategoryManagement";
 import Profile from "@/components/pages/admin/Profile";
 import Notification from "@/components/pages/admin/Notification";
 import ResetPassword from "@/components/pages/admin/ResetPassword";
+import CreateArticle from "@/components/pages/admin/CreateArticle";
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function AppInner() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<ArticleManagement />} />
           <Route path="article-management" element={<ArticleManagement />} />
+          <Route path="article-management/create" element={<CreateArticle />} />
           <Route path="category-management" element={<CategoryManagement />} />
           <Route path="profile" element={<Profile />} />
           <Route path="notification" element={<Notification />} />
