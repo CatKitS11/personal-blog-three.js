@@ -5,6 +5,8 @@
   "main": "index.mjs",
   "scripts": {
     "start": "node app.mjs",
+    "build": "npx prisma generate",
+    "vercel-build": "npx prisma generate && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
