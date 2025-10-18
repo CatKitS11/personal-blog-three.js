@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { FcGoogle } from "react-icons/fc";
-import { FaFacebook } from "react-icons/fa";
+import { FaUserShield } from "react-icons/fa";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -44,9 +46,13 @@ const Login = () => {
             <FcGoogle className="mr-3 h-5 w-5" />
             Continue with Google
           </Button>
-          <Button variant="outline" className="w-full justify-center py-3">
-            <FaFacebook className="mr-3 h-5 w-5 text-blue-600" />
-            Continue with Facebook
+          <Button
+            variant="outline"
+            className="w-full justify-center py-3"
+            onClick={() => navigate('/admin')}
+          >
+            <FaUserShield className="mr-3 h-5 w-5 text-gray-600" />
+            Log in as Admin (Temporary)
           </Button>
         </div>
 
