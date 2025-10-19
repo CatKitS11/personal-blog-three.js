@@ -20,7 +20,7 @@ authRouter.post("/register", async (req, res) => {
                                   WHERE username = $1
                                  `;
         const usernameCheckValues = [username];
-        const { rows: existingUser } = await connectionPool.query(
+        const { rows: existingUser } = await pool.query(
             usernameCheckQuery,
             usernameCheckValues
         );
@@ -59,7 +59,7 @@ authRouter.post("/register", async (req, res) => {
 
         const values = [supabaseUserId, username, name, "user"];
 
-        const { rows } = await connectionPool.query(query, values);
+        const { rows } = await pool.query(query, values);
         res.status(201).json({
             message: "User created successfully",
             user: rows[0],
@@ -120,7 +120,7 @@ authRouter.get("/get-user", async (req, res) => {
                       WHERE id = $1
                     `;
         const values = [supabaseUserId];
-        const { rows } = await connectionPool.query(query, values);
+        const { rows } = await pool.query(query, values);
 
         res.status(200).json({
             id: data.user.id,
@@ -185,10 +185,6 @@ authRouter.put("/reset-password", async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 });
-
-
-
-
 
 export default authRouter;
 

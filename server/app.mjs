@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import postRouter from './routes/postRoutes.mjs';
+import authRouter from './routes/authRoutes.mjs';
 
 const app = express();
 const PORT = 3002;
@@ -13,6 +14,7 @@ app.get('/test', (req, res) => {
 });
 
 app.use('/posts', postRouter);
+app.use('/auth', authRouter);
 
 
 // Graceful shutdown

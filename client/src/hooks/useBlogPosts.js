@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
+// API_BASE_URL = 'http://localhost:3002';
+// API_BASE_URL = 'https://personal-blog-three-js-api.vercel.app'; 
+
 const API_BASE_URL = 'https://personal-blog-three-js-api.vercel.app';
 
 // สร้าง axios instance
@@ -89,10 +92,10 @@ export const useBlogPosts = (initialParams = {}) => {
     setParams(prev => ({ ...prev, category, page: 1 }));
   };
 
-  const changeLimit = (limit) => {
-    // ไม่ต้องใช้เพราะเราใช้ client-side pagination
-    console.log('Limit change not implemented for client-side filtering');
-  };
+  // const changeLimit = (limit) => {
+  //   // ไม่ต้องใช้เพราะเราใช้ client-side pagination
+  //   console.log('Limit change not implemented for client-side filtering');
+  // };
 
   // Load posts on mount only
   useEffect(() => {
@@ -108,7 +111,7 @@ export const useBlogPosts = (initialParams = {}) => {
     loadPosts,
     changePage,
     changeCategory,
-    changeLimit,
+    // changeLimit,
     refetch: loadPosts,
     allPosts,
   };

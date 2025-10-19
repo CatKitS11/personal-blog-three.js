@@ -4,9 +4,11 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { FcGoogle } from "react-icons/fc";
 import { FaUserShield } from "react-icons/fa";
+import { useAuth } from "../contexts/authentication";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -19,26 +21,35 @@ const Login = () => {
 
   const validate = () => {
     const e = {};
-    if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = "Invalid email";
+    if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
+      e.email = "Invalid email";
     if (!form.password) e.password = "Password is required";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
+    // EDIT: เปลี่ยนเป็น async function
     e.preventDefault();
     if (!validate()) return;
-    console.log("Login:", form);
-    // TODO: call login API
+
+    try {
+      const result = await login(form); // EDIT: เรียก login จาก useAuth
+      if (result?.error) {
+        // จัดการกับ error จาก login
+        setErrors({ submit: result.error });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setErrors({ submit: "An unexpected error occurred" });
+    }
   };
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-sm w-full space-y-6">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">
-            Log in to hh.
-          </h2>
+          <h2 className="text-3xl font-bold text-gray-900">Log in to hh.</h2>
         </div>
 
         <div className="space-y-3">
@@ -49,7 +60,7 @@ const Login = () => {
           <Button
             variant="outline"
             className="w-full justify-center py-3"
-            onClick={() => navigate('/admin')}
+            onClick={() => navigate("/admin")}
           >
             <FaUserShield className="mr-3 h-5 w-5 text-gray-600" />
             Log in as Admin (Temporary)
@@ -74,6 +85,10 @@ const Login = () => {
             onChange={onChange}
             className="py-3"
           />
+          {errors.email && (
+            <p className="text-sm text-red-500">{errors.email}</p>
+          )}
+
           <Input
             name="password"
             type="password"
@@ -82,21 +97,38 @@ const Login = () => {
             onChange={onChange}
             className="py-3"
           />
+          {errors.password && (
+            <p className="text-sm text-red-500">{errors.password}</p>
+          )}
+
+          {/* EDIT: เพิ่มการแสดง error จาก server */}
+          {errors.submit && (
+            <p className="text-sm text-red-500">{errors.submit}</p>
+          )}
 
           <div className="text-right text-sm">
-            <a href="#" className="font-medium text-gray-600 hover:text-gray-500">
+            <a
+              href="#"
+              className="font-medium text-gray-600 hover:text-gray-500"
+            >
               Forgot password?
             </a>
           </div>
 
-          <Button type="submit" className="w-full justify-center py-3 bg-gray-900 text-white font-semibold hover:bg-gray-800">
+          <Button
+            type="submit"
+            className="w-full justify-center py-3 bg-gray-900 text-white font-semibold hover:bg-gray-800"
+          >
             Log in
           </Button>
         </form>
 
         <p className="text-center text-sm text-gray-600">
-          Don't have an account?{' '}
-          <a href="/signup" className="font-medium text-gray-800 hover:text-gray-700">
+          Don't have an account?{" "}
+          <a
+            href="/signup"
+            className="font-medium text-gray-800 hover:text-gray-700"
+          >
             Sign up
           </a>
         </p>
