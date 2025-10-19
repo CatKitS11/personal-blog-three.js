@@ -34,6 +34,8 @@ const SignUp = () => {
     e.preventDefault();
     if (!validate()) return;
     
+    console.log("Submitting form:", form);
+    
     try {
       const result = await register({
         name: form.fullName,
@@ -41,7 +43,9 @@ const SignUp = () => {
         email: form.email,
         password: form.password
       });
-
+  
+      console.log("Register result:", result);
+  
       if (result?.error) {
         setErrors({ submit: result.error });
       }

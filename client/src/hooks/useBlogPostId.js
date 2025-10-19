@@ -4,7 +4,7 @@ import axios from 'axios';
 // API_BASE_URL = 'http://localhost:3002';
 // API_BASE_URL = 'https://personal-blog-three-js-api.vercel.app'; 
 
-const API_BASE_URL = 'https://personal-blog-three-js-api.vercel.app'; 
+const API_BASE_URL = 'http://localhost:3002'; 
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

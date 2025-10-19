@@ -95,7 +95,7 @@ function AuthProvider(props) {
         loading: false,
         error: error.response?.data?.error || "Registration failed",
       }));
-      return { error: state.error };
+      return { error: error.response?.data?.error || "Registration failed" };
     }
   };
 
