@@ -4,7 +4,7 @@ import './index.css'
 import App from './App.jsx'
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./contexts/authentication.jsx";
-import jwtInterceptor from "./utils/jwtInterceptor.js";
+import jwtInterceptor from "@/utils/jwtInterceptor.js";
 
 // เรียกใช้ jwtInterceptor ก่อนที่แอปจะเริ่มทำงาน
 jwtInterceptor();
