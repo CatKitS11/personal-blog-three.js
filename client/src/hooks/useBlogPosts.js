@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = 'https://personal-blog-three-js-api.vercel.app';
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 // สร้าง axios instance
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: apiBaseUrl,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -89,10 +89,10 @@ export const useBlogPosts = (initialParams = {}) => {
     setParams(prev => ({ ...prev, category, page: 1 }));
   };
 
-  const changeLimit = (limit) => {
-    // ไม่ต้องใช้เพราะเราใช้ client-side pagination
-    console.log('Limit change not implemented for client-side filtering');
-  };
+  // const changeLimit = (limit) => {
+  //   // ไม่ต้องใช้เพราะเราใช้ client-side pagination
+  //   console.log('Limit change not implemented for client-side filtering');
+  // };
 
   // Load posts on mount only
   useEffect(() => {
@@ -108,7 +108,7 @@ export const useBlogPosts = (initialParams = {}) => {
     loadPosts,
     changePage,
     changeCategory,
-    changeLimit,
+    // changeLimit,
     refetch: loadPosts,
     allPosts,
   };

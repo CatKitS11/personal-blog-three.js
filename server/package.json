@@ -4,7 +4,7 @@
   "type": "module",
   "main": "index.mjs",
   "scripts": {
-    "start": "node app.mjs",
+    "start": "nodemon app.mjs",
     "build": "npx prisma generate",
     "vercel-build": "npx prisma generate && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,7 +15,7 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "^6.16.3",
-    "@supabase/supabase-js": "^2.74.0",
+    "@supabase/supabase-js": "^2.75.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
