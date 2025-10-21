@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/authentication';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { User, Camera, Save, Settings, Key } from 'lucide-react';
+import { User, Key } from 'lucide-react';
 import axios from 'axios';
+import { useImageUpload } from '@/hooks/uploadProfilePic';
 
 const Profile = () => {
   const { state, fetchUser } = useAuth();
   const { user } = state;
-  // const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [profileData, setProfileData] = useState({
@@ -18,13 +18,15 @@ const Profile = () => {
     profilePicture: null
   });
 
+  const { uploadProfilePicture, uploading: imageUploading, error: uploadError, setUploadError } = useImageUpload();
+
   useEffect(() => {
     if (user) {
       setProfileData({
         name: user.name || 'Moodeng ja',
         username: user.username || 'moodeng.cute',
         email: user.email || 'moodeng.cute@gmail.com',
-        profilePicture: user.profile_picture || null
+        profilePicture: user.profile_picture_url || null
       });
     }
   }, [user]);
@@ -37,18 +39,27 @@ const Profile = () => {
     }));
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      // Preview image
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfileData(prev => ({
-          ...prev,
-          profilePicture: e.target.result
-        }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // Preview image ทันที
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setProfileData(prev => ({
+        ...prev,
+        profilePicture: e.target.result
+      }));
+    };
+    reader.readAsDataURL(file);
+
+    // Upload รูปไปยัง server
+    const imageUrl = await uploadProfilePicture(file);
+    if (imageUrl) {
+      setProfileData(prev => ({
+        ...prev,
+        profilePicture: imageUrl
+      }));
     }
   };
 
@@ -56,22 +67,15 @@ const Profile = () => {
     setLoading(true);
     setSuccessMessage('');
     try {
-      const formData = new FormData();
-      formData.append('name', profileData.name);
-      formData.append('username', profileData.username);
-      
-      // If there's a new image file
-      const fileInput = document.getElementById('profile-picture');
-      if (fileInput.files[0]) {
-        formData.append('profile_picture', fileInput.files[0]);
-      }
-
       const response = await axios.put(
         `${import.meta.env.VITE_API_BASE_URL}/auth/profile`,
-        formData,
+        {
+          name: profileData.name,
+          username: profileData.username,
+          profile_picture: profileData.profilePicture
+        },
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         }
@@ -79,8 +83,8 @@ const Profile = () => {
 
       if (response.data.success) {
         await fetchUser(); // Refresh user data
-        setSuccessMessage('Your profile has been successfully updated'); // EDIT
-        setTimeout(() => setSuccessMessage(''), 5000); // Hide after 5s
+        setSuccessMessage('Your profile has been successfully updated');
+        setTimeout(() => setSuccessMessage(''), 5000);
       }
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -89,18 +93,6 @@ const Profile = () => {
       setLoading(false);
     }
   };
-
-  // const handleCancel = () => {
-  //   if (user) {
-  //     setProfileData({
-  //       name: user.name || 'Moodeng ja',
-  //       username: user.username || 'moodeng.cute',
-  //       email: user.email || 'moodeng.cute@gmail.com',
-  //       profilePicture: user.profile_picture || null
-  //     });
-  //   }
-  //   setIsEditing(false);
-  // };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -160,8 +152,21 @@ const Profile = () => {
               </div>
             )}
 
+            {/* Upload Error Message */}
+            {uploadError && (
+              <div className="mb-6 bg-red-500 text-white px-6 py-3 rounded-lg flex items-center justify-between">
+                <span>{uploadError}</span>
+                <button 
+                  onClick={() => setUploadError('')}
+                  className="text-white hover:text-gray-200"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
             <div className="bg-gray-100 rounded-xl p-8">
-              {/* Profile Picture Section - แสดง Upload button ตลอดเวลา */}
+              {/* Profile Picture Section */}
               <div className="flex items-center gap-6 mb-8">
                 <div className="relative">
                   <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
@@ -175,14 +180,19 @@ const Profile = () => {
                       <User className="w-12 h-12 text-gray-600" />
                     )}
                   </div>
+                  {imageUploading && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                      <div className="text-white text-xs">Uploading...</div>
+                    </div>
+                  )}
                 </div>
-                {/* แสดง Upload button ตลอดเวลา ไม่ว่าจะ editing หรือไม่ */}
                 <div>
                   <label 
                     htmlFor="profile-picture"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors disabled:opacity-50"
+                    disabled={imageUploading}
                   >
-                    Upload profile picture
+                    {imageUploading ? 'Uploading...' : 'Upload profile picture'}
                   </label>
                   <input
                     id="profile-picture"
@@ -190,6 +200,7 @@ const Profile = () => {
                     accept="image/*"
                     onChange={handleImageUpload}
                     className="hidden"
+                    disabled={imageUploading}
                   />
                 </div>
               </div>
@@ -232,11 +243,11 @@ const Profile = () => {
                 </div>
               </div>
 
-              {/* Save Button - แสดงตลอดเวลา */}
+              {/* Save Button */}
               <div className="mt-8">
                 <Button 
                   onClick={handleSave}
-                  disabled={loading}
+                  disabled={loading || imageUploading}
                   className="bg-gray-800 text-white hover:bg-gray-700 rounded-full px-8"
                 >
                   {loading ? 'Saving...' : 'Save'}

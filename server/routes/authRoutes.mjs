@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { createClient } from "@supabase/supabase-js";
 import pool from "../utils/db.mjs";
+import protectUser from "../middlewares/protectUser.mjs";
 
 const supabase = createClient(
     process.env.SUPABASE_URL,
@@ -52,12 +53,12 @@ authRouter.post("/register", async (req, res) => {
 
         // เพิ่มข้อมูลผู้ใช้ในฐานข้อมูล PostgreSQL
         const query = `
-          INSERT INTO users (id, username, name, role)
-          VALUES ($1, $2, $3, $4)
-          RETURNING *;
-        `;
+                INSERT INTO users (id, username, name, email, role, profile_picture_url)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                RETURNING *;
+              `;
 
-        const values = [supabaseUserId, username, name, "user"];
+        const values = [supabaseUserId, username, name, email, "user", null]; // ใช้ profile_picture_url
 
         const { rows } = await pool.query(query, values);
         res.status(201).json({
@@ -104,33 +105,33 @@ authRouter.get("/get-user", async (req, res) => {
     const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
-        return res.status(401).json({ error: "Unauthorized: Token missing" });
+        return res.status(401).json({ error: "No token provided" });
     }
 
     try {
-        // ดึงข้อมูลผู้ใช้จาก Supabase
         const { data, error } = await supabase.auth.getUser(token);
-        if (error) {
-            return res.status(401).json({ error: "Unauthorized or token expired" });
+
+        if (error || !data.user) {
+            return res.status(401).json({ error: "Invalid token" });
         }
 
         const supabaseUserId = data.user.id;
-        const query = `
-                      SELECT * FROM users 
-                      WHERE id = $1
-                    `;
-        const values = [supabaseUserId];
-        const { rows } = await pool.query(query, values);
 
-        res.status(200).json({
-            id: data.user.id,
-            email: data.user.email,
-            username: rows[0].username,
-            name: rows[0].name,
-            role: rows[0].role,
-            profilePic: rows[0].profile_pic,
-        });
+        // ดึงข้อมูลผู้ใช้จากฐานข้อมูล PostgreSQL
+        const query = `
+            SELECT id, username, name, email, role, profile_picture_url
+            FROM users 
+            WHERE id = $1
+        `;
+        const { rows } = await pool.query(query, [supabaseUserId]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.status(200).json(rows[0]);
     } catch (error) {
+        console.error("Get user error:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 });
@@ -185,6 +186,48 @@ authRouter.put("/reset-password", async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 });
+
+
+authRouter.put("/profile", protectUser, async (req, res) => {
+    try {
+        const userId = req.user.id; // Supabase user ID
+        const { name, username, profile_picture } = req.body;
+
+        // อัปเดตข้อมูลผู้ใช้ในฐานข้อมูลด้วย SQL
+        const updateQuery = `
+                UPDATE users
+                SET name = $1,
+                    username = $2,
+                    profile_picture_url = $3
+                WHERE id = $4
+                RETURNING id, name, username, profile_picture_url, email;
+            `;
+        const updateValues = [name, username, profile_picture, userId];
+
+        const { rows } = await pool.query(updateQuery, updateValues);
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: "User not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            user: rows[0]
+        });
+
+    } catch (error) {
+        console.error("Update profile error:", error);
+        res.status(500).json({
+            success: false,
+            error: "Failed to update profile"
+        });
+    }
+});
+
 
 export default authRouter;
 
