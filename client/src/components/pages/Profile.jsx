@@ -8,8 +8,9 @@ import axios from 'axios';
 const Profile = () => {
   const { state, fetchUser } = useAuth();
   const { user } = state;
-  const [isEditing, setIsEditing] = useState(false);
+  // const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [profileData, setProfileData] = useState({
     name: '',
     username: '',
@@ -20,9 +21,9 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       setProfileData({
-        name: user.name || '',
-        username: user.username || '',
-        email: user.email || '',
+        name: user.name || 'Moodeng ja',
+        username: user.username || 'moodeng.cute',
+        email: user.email || 'moodeng.cute@gmail.com',
         profilePicture: user.profile_picture || null
       });
     }
@@ -53,6 +54,7 @@ const Profile = () => {
 
   const handleSave = async () => {
     setLoading(true);
+    setSuccessMessage('');
     try {
       const formData = new FormData();
       formData.append('name', profileData.name);
@@ -77,8 +79,8 @@ const Profile = () => {
 
       if (response.data.success) {
         await fetchUser(); // Refresh user data
-        setIsEditing(false);
-        alert('Profile updated successfully!');
+        setSuccessMessage('Your profile has been successfully updated'); // EDIT
+        setTimeout(() => setSuccessMessage(''), 5000); // Hide after 5s
       }
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -88,26 +90,26 @@ const Profile = () => {
     }
   };
 
-  const handleCancel = () => {
-    if (user) {
-      setProfileData({
-        name: user.name || '',
-        username: user.username || '',
-        email: user.email || '',
-        profilePicture: user.profile_picture || null
-      });
-    }
-    setIsEditing(false);
-  };
+  // const handleCancel = () => {
+  //   if (user) {
+  //     setProfileData({
+  //       name: user.name || 'Moodeng ja',
+  //       username: user.username || 'moodeng.cute',
+  //       email: user.email || 'moodeng.cute@gmail.com',
+  //       profilePicture: user.profile_picture || null
+  //     });
+  //   }
+  //   setIsEditing(false);
+  // };
 
   return (
     <div className="min-h-screen bg-gray-50">
-
+      
       <div className="flex">
-        {/* Sidebar */}
+        {/* Left Sidebar */}
         <div className="w-64 bg-white border-r border-gray-200 min-h-screen p-6">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
               {profileData.profilePicture ? (
                 <img 
                   src={profileData.profilePicture} 
@@ -119,7 +121,7 @@ const Profile = () => {
               )}
             </div>
             <div>
-              <h2 className="font-semibold text-gray-800">{user?.name || 'User'}</h2>
+              <h2 className="font-semibold text-gray-800">{profileData.name || 'Moodeng ja'}</h2>
               <p className="text-sm text-gray-500">Profile</p>
             </div>
           </div>
@@ -129,7 +131,7 @@ const Profile = () => {
               href="/profile" 
               className="flex items-center gap-3 px-3 py-2 bg-gray-100 text-gray-800 rounded-lg font-medium"
             >
-              <Settings className="w-4 h-4" />
+              <User className="w-4 h-4" />
               Profile
             </a>
             <a 
@@ -142,11 +144,24 @@ const Profile = () => {
           </nav>
         </div>
 
-        {/* Main Content */}
+        {/* Main Content Area */}
         <div className="flex-1 p-8">
           <div className="max-w-2xl">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-              {/* Profile Picture Section */}
+            {/* Success Message */}
+            {successMessage && (
+              <div className="mb-6 bg-green-500 text-white px-6 py-3 rounded-lg flex items-center justify-between">
+                <span>{successMessage}</span>
+                <button 
+                  onClick={() => setSuccessMessage('')}
+                  className="text-white hover:text-gray-200"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            <div className="bg-gray-100 rounded-xl p-8">
+              {/* Profile Picture Section - แสดง Upload button ตลอดเวลา */}
               <div className="flex items-center gap-6 mb-8">
                 <div className="relative">
                   <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
@@ -160,33 +175,23 @@ const Profile = () => {
                       <User className="w-12 h-12 text-gray-600" />
                     )}
                   </div>
-                  {isEditing && (
-                    <label 
-                      htmlFor="profile-picture"
-                      className="absolute bottom-0 right-0 bg-gray-800 text-white p-2 rounded-full cursor-pointer hover:bg-gray-700 transition-colors"
-                    >
-                      <Camera className="w-4 h-4" />
-                    </label>
-                  )}
                 </div>
-                {isEditing && (
-                  <div>
-                    <label 
-                      htmlFor="profile-picture"
-                      className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
-                    >
-                      <Camera className="w-4 h-4" />
-                      Upload profile picture
-                    </label>
-                    <input
-                      id="profile-picture"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                  </div>
-                )}
+                {/* แสดง Upload button ตลอดเวลา ไม่ว่าจะ editing หรือไม่ */}
+                <div>
+                  <label 
+                    htmlFor="profile-picture"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+                  >
+                    Upload profile picture
+                  </label>
+                  <input
+                    id="profile-picture"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </div>
               </div>
 
               {/* Form Fields */}
@@ -199,8 +204,7 @@ const Profile = () => {
                     name="name"
                     value={profileData.name}
                     onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-full"
+                    className="w-full bg-white"
                     placeholder="Enter your name"
                   />
                 </div>
@@ -213,53 +217,30 @@ const Profile = () => {
                     name="username"
                     value={profileData.username}
                     onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-full"
+                    className="w-full bg-white"
                     placeholder="Enter your username"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-400 mb-2">
                     Email
                   </label>
-                  <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-500">
+                  <div className="px-3 py-2 bg-white border border-gray-200 rounded-md text-gray-400 text-sm">
                     {profileData.email}
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Email cannot be changed
-                  </p>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-4 mt-8">
-                {isEditing ? (
-                  <>
-                    <Button 
-                      onClick={handleSave}
-                      disabled={loading}
-                      className="bg-gray-800 text-white hover:bg-gray-700"
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      {loading ? 'Saving...' : 'Save'}
-                    </Button>
-                    <Button 
-                      onClick={handleCancel}
-                      variant="outline"
-                      className="text-gray-700 border-gray-300 hover:bg-gray-50"
-                    >
-                      Cancel
-                    </Button>
-                  </>
-                ) : (
-                  <Button 
-                    onClick={() => setIsEditing(true)}
-                    className="bg-gray-800 text-white hover:bg-gray-700"
-                  >
-                    Edit Profile
-                  </Button>
-                )}
+              {/* Save Button - แสดงตลอดเวลา */}
+              <div className="mt-8">
+                <Button 
+                  onClick={handleSave}
+                  disabled={loading}
+                  className="bg-gray-800 text-white hover:bg-gray-700 rounded-full px-8"
+                >
+                  {loading ? 'Saving...' : 'Save'}
+                </Button>
               </div>
             </div>
           </div>
