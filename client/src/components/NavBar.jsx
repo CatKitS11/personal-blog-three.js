@@ -7,11 +7,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import VectorIcon from "../assets/Vector.png";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import VectorIcon from "@/assets/Vector.png";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/authentication";
+import { Bell, User, LogOut, Settings } from "lucide-react";
 
 const NavBar = () => {
   const navigate = useNavigate();
+  const { state, logout, isAuthenticated } = useAuth();
+  const { user } = state;
+
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <nav className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
@@ -25,22 +39,76 @@ const NavBar = () => {
 
       {/* Navigation Buttons */}
       <div className="flex max-xs:hidden items-center gap-4 mx-16">
-        <Link to="/login">
-          <Button
-            variant="outline"
-            className="text-gray-700 border-gray-300 hover:bg-gray-50 rounded-full"
-          >
-            Log in
-          </Button>
-        </Link>
-        <Link to="/signup">
-          <Button className="bg-gray-800 text-white hover:bg-gray-700 rounded-full">
-            Sign up
-          </Button>
-        </Link>
+        {!isAuthenticated ? (
+          // Guest user buttons
+          <>
+            <Link to="/login">
+              <Button
+                variant="outline"
+                className="text-gray-700 border-gray-300 hover:bg-gray-50 rounded-full"
+              >
+                Log in
+              </Button>
+            </Link>
+            <Link to="/signup">
+              <Button className="bg-gray-800 text-white hover:bg-gray-700 rounded-full">
+                Sign up
+              </Button>
+            </Link>
+          </>
+        ) : (
+          // Authenticated user section
+          <div className="flex items-center gap-4">
+            {/* Notifications */}
+            <div className="relative">
+              <Bell className="w-6 h-6 text-gray-600 cursor-pointer hover:text-gray-800" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+            </div>
+
+            {/* User Profile Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-2 hover:bg-gray-50 rounded-lg p-2 transition-colors">
+                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                  {user?.profile_picture ? (
+                    <img 
+                      src={user.profile_picture} 
+                      alt="Profile" 
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-5 h-5 text-gray-600" />
+                  )}
+                </div>
+                <span className="text-gray-700 font-medium">
+                  {user?.name || user?.email || "User"}
+                </span>
+                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => navigate("/profile")}>
+                  <Settings className="w-4 h-4 mr-2" />
+                  Profile Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </div>
+
+      {/* Mobile Menu */}
       <div className="hidden max-xs:block">
-        <Select onValueChange={(v) => v === "signup" && navigate("/signup")}>
+        <Select onValueChange={(v) => {
+          if (v === "signup") navigate("/signup");
+          if (v === "login") navigate("/login");
+          if (v === "profile") navigate("/profile");
+          if (v === "logout") handleLogout();
+        }}>
           <SelectTrigger className="w-[40px] [&>svg]:hidden border-none">
             <SelectValue
               placeholder={
@@ -49,12 +117,25 @@ const NavBar = () => {
             />
           </SelectTrigger>
           <SelectContent className="flex flex-col gap-6 bg-white w-80 border-none shadow-none">
-            <SelectItem value="login" className="justify-center">
-              Log in
-            </SelectItem>
-            <SelectItem value="signup" className="justify-center">
-              Sign up
-            </SelectItem>
+            {!isAuthenticated ? (
+              <>
+                <SelectItem value="login" className="justify-center">
+                  Log in
+                </SelectItem>
+                <SelectItem value="signup" className="justify-center">
+                  Sign up
+                </SelectItem>
+              </>
+            ) : (
+              <>
+                <SelectItem value="profile" className="justify-center">
+                  Profile
+                </SelectItem>
+                <SelectItem value="logout" className="justify-center">
+                  Logout
+                </SelectItem>
+              </>
+            )}
           </SelectContent>
         </Select>
       </div>
