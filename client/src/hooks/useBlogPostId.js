@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-// API_BASE_URL = 'http://localhost:3002';
-// API_BASE_URL = 'https://personal-blog-three-js-api.vercel.app'; 
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
-const API_BASE_URL = 'http://localhost:3002'; 
 
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: apiBaseUrl,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
