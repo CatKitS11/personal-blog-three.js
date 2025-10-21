@@ -16,7 +16,7 @@ import {
 import VectorIcon from "@/assets/Vector.png";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/authentication";
-import { Bell, User, LogOut, Settings } from "lucide-react";
+import { Bell, User, LogOut, Settings, Key } from "lucide-react";
 
 const NavBar = () => {
   const navigate = useNavigate();
@@ -61,13 +61,13 @@ const NavBar = () => {
           <div className="flex items-center gap-4">
             {/* Notifications */}
             <div className="relative">
-              <Bell className="w-6 h-6 text-gray-600 cursor-pointer hover:text-gray-800" />
+              <Bell className="w-6 h-6 text-gray-600 cursor-pointer" />
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
             </div>
 
             {/* User Profile Dropdown */}
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-2 hover:bg-gray-50 rounded-lg p-2 transition-colors">
+              <DropdownMenuTrigger className="flex items-center gap-2 hover:bg-gray-50 p-2 focus:outline-none">
                 <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
                   {user?.profile_picture ? (
                     <img 
@@ -86,11 +86,21 @@ const NavBar = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-48 bg-white">
                 <DropdownMenuItem onClick={() => navigate("/profile")}>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Profile Settings
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/reset-password")}>
+                  <Key className="w-4 h-4 mr-2" />
+                  Reset Password
+                </DropdownMenuItem>
+                {user?.role === 'admin' && (
+                  <DropdownMenuItem onClick={() => navigate("/admin")}>
+                    <Settings className="w-4 h-4 mr-2" />
+                    Admin Panel
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout
@@ -107,7 +117,9 @@ const NavBar = () => {
           if (v === "signup") navigate("/signup");
           if (v === "login") navigate("/login");
           if (v === "profile") navigate("/profile");
+          if (v === "reset-password") navigate("/reset-password");
           if (v === "logout") handleLogout();
+          if (v === "admin" && user?.role === "admin") navigate("/admin");
         }}>
           <SelectTrigger className="w-[40px] [&>svg]:hidden border-none">
             <SelectValue
@@ -131,6 +143,14 @@ const NavBar = () => {
                 <SelectItem value="profile" className="justify-center">
                   Profile
                 </SelectItem>
+                <SelectItem value="reset-password" className="justify-center">
+                  Reset Password
+                </SelectItem>
+                {user?.role === 'admin' && (
+                  <SelectItem value="admin" className="justify-center">
+                    Admin Panel
+                  </SelectItem>
+                )}
                 <SelectItem value="logout" className="justify-center">
                   Logout
                 </SelectItem>
