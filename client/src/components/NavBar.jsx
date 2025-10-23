@@ -68,10 +68,10 @@ const NavBar = () => {
             {/* User Profile Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-2 hover:bg-gray-50 p-2 focus:outline-none">
-                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                  {user?.profile_picture ? (
+                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+                  {user?.profile_picture_url ? (
                     <img 
-                      src={user.profile_picture} 
+                      src={user.profile_picture_url} 
                       alt="Profile" 
                       className="w-8 h-8 rounded-full object-cover"
                     />
