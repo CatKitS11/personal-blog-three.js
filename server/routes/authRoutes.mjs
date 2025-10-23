@@ -228,6 +228,37 @@ authRouter.put("/profile", protectUser, async (req, res) => {
     }
 });
 
+// เพิ่ม endpoint สำหรับเช็ค availability
+authRouter.post('/check-availability', async (req, res) => {
+  try {
+    const { field, value } = req.body;
+    
+    if (!field || !value) {
+      return res.status(400).json({ error: 'Field and value are required' });
+    }
+    
+    if (!['username', 'email'].includes(field)) {
+      return res.status(400).json({ error: 'Invalid field' });
+    }
+    
+    // เช็คใน database ว่า username หรือ email ซ้ำหรือไม่
+    const existingUser = await pool.query(`
+      SELECT * FROM users 
+      WHERE ${field} = $1
+    `, [value]);
+    
+    res.json({ 
+      available: existingUser.rows.length === 0,
+      field,
+      value 
+    });
+    
+  } catch (error) {
+    console.error('Check availability error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 export default authRouter;
 

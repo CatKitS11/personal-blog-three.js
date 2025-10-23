@@ -3,10 +3,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const AuthContext = React.createContext();
-// "http://localhost:3002"
-// 'https://personal-blog-three-js-api.vercel.app';
 
-const API_BASE_URL = 'http://localhost:3002';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function AuthProvider(props) {
   const [state, setState] = useState({
@@ -14,6 +12,7 @@ function AuthProvider(props) {
     getUserLoading: null,
     error: null,
     user: null,
+    checkingAvailability: false,
   });
 
   const navigate = useNavigate();
@@ -108,6 +107,24 @@ function AuthProvider(props) {
 
   const isAuthenticated = Boolean(state.user);
 
+  // เช็คว่า username หรือ email ซ้ำหรือไม่
+  const checkAvailability = async (field, value) => {
+    if (!value.trim()) return { available: true };
+    
+    try {
+      setState(prev => ({ ...prev, checkingAvailability: true }));
+      const response = await axios.post(
+        `${API_BASE_URL}/auth/check-availability`,
+        { field, value: value.trim() }
+      );
+      setState(prev => ({ ...prev, checkingAvailability: false }));
+      return response.data;
+    } catch (error) {
+      setState(prev => ({ ...prev, checkingAvailability: false }));
+      return { available: false, error: error.response?.data?.error || "Check failed" };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -116,12 +133,15 @@ function AuthProvider(props) {
         logout,
         register,
         isAuthenticated,
+        checkAvailability,
         fetchUser,
       }}
     >
       {props.children}
     </AuthContext.Provider>
   );
+
+  
 }
 
 // Hook สำหรับใช้งาน AuthContext

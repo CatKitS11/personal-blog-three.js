@@ -3,10 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useAuth } from "../contexts/authentication";
+import { useSignUpValidation } from "../hooks/useValidation";
+import { useAvailabilityCheck } from "../hooks/useAvailabilityCheck";
 
 const SignUp = () => {
-  const { register, state } = useAuth();  // EDIT: เพิ่ม state เพื่อเช็ค loading
-  const navigate = useNavigate(); 
+  const { register, state } = useAuth();
+  const navigate = useNavigate();
+  const { errors, validateForm, clearError } = useSignUpValidation();
+  const { availabilityStatus, checkFieldAvailability, clearAvailabilityStatus } = useAvailabilityCheck();
 
   const [form, setForm] = useState({
     fullName: "",
@@ -14,27 +18,27 @@ const SignUp = () => {
     email: "",
     password: "",
   });
-  const [errors, setErrors] = useState({});
 
   const onChange = (e) => {
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
-  };
-
-  const validate = () => {
-    const e = {};
-    if (!form.fullName.trim()) e.fullName = "Full name is required";
-    if (!form.username.trim()) e.username = "Username is required";
-    if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = "Invalid email";
-    if (form.password.length < 6) e.password = "Min 6 characters";
-    setErrors(e);
-    return Object.keys(e).length === 0;
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+    clearError(name);
+    
+    // Check availability for username and email
+    if (name === 'username' || name === 'email') {
+      checkFieldAvailability(name, value);
+    }
   };
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
     
-    console.log("Submitting form:", form);
+    // Check if username and email are available before submitting
+    if (availabilityStatus.username.available === false || availabilityStatus.email.available === false) {
+      return;
+    }
+    
+    if (!validateForm(form)) return;
     
     try {
       const result = await register({
@@ -43,16 +47,63 @@ const SignUp = () => {
         email: form.email,
         password: form.password
       });
-  
-      console.log("Register result:", result);
-  
+
       if (result?.error) {
-        setErrors({ submit: result.error });
+        console.error("Registration error:", result.error);
       }
     } catch (error) {
       console.error("Registration error:", error);
-      setErrors({ submit: "An unexpected error occurred" });
     }
+  };
+
+  // Helper function to get status icon and color
+  const getStatusDisplay = (field) => {
+    const status = availabilityStatus[field];
+    
+    if (status.status === 'checking') {
+      return (
+        <div className="flex items-center text-blue-600">
+          <div className="animate-spin rounded-full h-4 w-4 my-3 border-b-2 border-blue-600 mr-2"></div>
+          <span className="text-sm">{status.message}</span>
+        </div>
+      );
+    }
+    
+    if (status.status === 'success') {
+      return (
+        <div className="flex items-center text-green-600">
+          <svg className="w-4 h-4 mr-2 my-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="text-sm">{status.message}</span>
+        </div>
+      );
+    }
+    
+    if (status.status === 'error') {
+      return (
+        <div className="flex items-center text-red-600">
+          <svg className="w-4 h-4 mr-2 my-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          <span className="text-sm">{status.message}</span>
+        </div>
+      );
+    }
+    
+    // Show idle message (requirements not met)
+    if (status.status === 'idle' && status.message) {
+      return (
+        <div className="flex items-center text-gray-500">
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-sm">{status.message}</span>
+        </div>
+      );
+    }
+    
+    return null;
   };
 
   return (
@@ -70,7 +121,7 @@ const SignUp = () => {
                   value={form.fullName}
                   onChange={onChange}
                   className="bg-white"
-                  disabled={state.loading}  // EDIT: disable ระหว่าง loading
+                  disabled={state.loading}
                 />
                 {errors.fullName && <p className="text-sm text-red-500 mt-1">{errors.fullName}</p>}
               </div>
@@ -81,15 +132,19 @@ const SignUp = () => {
                 </label>
                 <Input
                   name="username"
-                  placeholder="Username"
+                  placeholder="Username (more than 6 characters)"
                   value={form.username}
                   onChange={onChange}
-                  className="bg-white"
-                  disabled={state.loading}  // EDIT: disable ระหว่าง loading
+                  className={`bg-white ${
+                    availabilityStatus.username.status === 'error' ? 'border-red-500' : 
+                    availabilityStatus.username.status === 'success' ? 'border-green-500' : ''
+                  }`}
+                  disabled={state.loading}
                 />
                 {errors.username && (
                   <p className="text-sm text-red-500 mt-1">{errors.username}</p>
                 )}
+                {getStatusDisplay('username')}
               </div>
 
               <div>
@@ -99,15 +154,19 @@ const SignUp = () => {
                 <Input
                   name="email"
                   type="email"
-                  placeholder="Email"
+                  placeholder="Email (must contain @ and .)"
                   value={form.email}
                   onChange={onChange}
-                  className="bg-white"
-                  disabled={state.loading}  // EDIT: disable ระหว่าง loading
+                  className={`bg-white ${
+                    availabilityStatus.email.status === 'error' ? 'border-red-500' : 
+                    availabilityStatus.email.status === 'success' ? 'border-green-500' : ''
+                  }`}
+                  disabled={state.loading}
                 />
                 {errors.email && (
                   <p className="text-sm text-red-500 mt-1">{errors.email}</p>
                 )}
+                {getStatusDisplay('email')}
               </div>
 
               <div>
@@ -121,7 +180,7 @@ const SignUp = () => {
                   value={form.password}
                   onChange={onChange}
                   className="bg-white"
-                  disabled={state.loading}  // EDIT: disable ระหว่าง loading
+                  disabled={state.loading}
                 />
                 {errors.password && (
                   <p className="text-sm text-red-500 mt-1">{errors.password}</p>
@@ -134,14 +193,18 @@ const SignUp = () => {
                 <Button 
                   type="submit" 
                   className="bg-gray-900 text-white px-6 rounded-full"
-                  disabled={state.loading}  // EDIT: disable ระหว่าง loading
+                  disabled={state.loading || 
+                    availabilityStatus.username.available === false || 
+                    availabilityStatus.email.available === false ||
+                    availabilityStatus.username.status === 'checking' ||
+                    availabilityStatus.email.status === 'checking'
+                  }
                 >
-                  {state.loading ? "Signing up..." : "Sign up"}  {/* EDIT: แสดงสถานะ */}
+                  {state.loading ? "Signing up..." : "Sign up"}
                 </Button>
               </div>
             </form>
 
-            {/* EDIT: เพิ่มส่วนนี้ - Link ไปหน้า Login */}
             <p className="text-center text-sm text-gray-600 mt-6">
               Already have an account?{" "}
               <a href="/login" className="underline hover:text-gray-800">
