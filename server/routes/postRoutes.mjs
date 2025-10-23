@@ -1,6 +1,7 @@
 import { Router } from "express";
 import validatePostData from "../middlewares/postValidation.mjs";
 import { PrismaClient } from "@prisma/client";
+import protectAdmin from "../middlewares/protectAdmin.mjs";
 
 const prisma = new PrismaClient();
 const postRouter = Router();
@@ -105,7 +106,7 @@ postRouter.get("/:postId", async (req, res) => {
 });
 
 // POST /posts - Create post
-postRouter.post("/", validatePostData, async (req, res) => {
+postRouter.post("/", protectAdmin, validatePostData, async (req, res) => {
   try {
     const { title, image, category_id, description, content, status_id } =
       req.body;
@@ -125,7 +126,7 @@ postRouter.post("/", validatePostData, async (req, res) => {
 });
 
 // PUT /posts/:postId - Update post
-postRouter.put("/:postId", validatePostData, async (req, res) => {
+postRouter.put("/:postId", protectAdmin, validatePostData, async (req, res) => {
   try {
     const { postId } = req.params;
     const { title, image, category_id, description, content, status_id } =
@@ -151,7 +152,7 @@ postRouter.put("/:postId", validatePostData, async (req, res) => {
 });
 
 // DELETE /posts/:postId - Delete post
-postRouter.delete("/:postId", async (req, res) => {
+postRouter.delete("/:postId", protectAdmin, async (req, res) => {
   try {
     const { postId } = req.params;
     await prisma.posts.delete({

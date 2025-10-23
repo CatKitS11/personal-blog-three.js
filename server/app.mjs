@@ -3,6 +3,7 @@ import cors from 'cors';
 import postRouter from './routes/postRoutes.mjs';
 import authRouter from './routes/authRoutes.mjs';
 import uploadRouter from './routes/uploadRoutes.mjs';
+import categoryRouter from './routes/categoryRoutes.mjs';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -24,6 +25,7 @@ app.get('/test', (req, res) => {
 app.use('/posts', postRouter);
 app.use('/auth', authRouter);
 app.use('/upload', uploadRouter);
+app.use('/categories', categoryRouter);
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
