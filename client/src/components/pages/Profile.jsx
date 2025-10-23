@@ -15,10 +15,11 @@ const Profile = () => {
     name: '',
     username: '',
     email: '',
-    profilePicture: null
+    profilePicture: null,
+    currentFilename: null // เพิ่มเก็บ filename ปัจจุบัน
   });
 
-  const { uploadProfilePicture, uploading: imageUploading, error: uploadError, setUploadError } = useImageUpload();
+  const { uploadProfilePicture, deleteImage, uploading: imageUploading, error: uploadError, setUploadError } = useImageUpload();
 
   useEffect(() => {
     if (user) {
@@ -26,10 +27,18 @@ const Profile = () => {
         name: user.name || 'Moodeng ja',
         username: user.username || 'moodeng.cute',
         email: user.email || 'moodeng.cute@gmail.com',
-        profilePicture: user.profile_picture_url || null
+        profilePicture: user.profile_picture_url || null,
+        currentFilename: user.profile_picture_url ? extractFilenameFromUrl(user.profile_picture_url) : null
       });
     }
   }, [user]);
+
+  // ฟังก์ชันดึง filename จาก URL
+  const extractFilenameFromUrl = (url) => {
+    if (!url) return null;
+    const parts = url.split('/');
+    return parts[parts.length - 1];
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -53,15 +62,22 @@ const Profile = () => {
     };
     reader.readAsDataURL(file);
 
-    // Upload รูปไปยัง server
-    const imageUrl = await uploadProfilePicture(file);
-    if (imageUrl) {
+    // ลบรูปเก่าก่อน (ถ้ามี)
+    if (profileData.currentFilename) {
+      await deleteImage(profileData.currentFilename);
+    }
+
+    // Upload รูปใหม่ไปยัง server
+    const result = await uploadProfilePicture(file);
+    if (result) {
       setProfileData(prev => ({
         ...prev,
-        profilePicture: imageUrl
+        profilePicture: result.imageUrl,
+        currentFilename: result.filename
       }));
     }
   };
+
 
   const handleSave = async () => {
     setLoading(true);
