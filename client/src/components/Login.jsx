@@ -3,12 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { FcGoogle } from "react-icons/fc";
-import { FaUserShield } from "react-icons/fa";
 import { useAuth } from "../contexts/authentication";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, state } = useAuth();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -29,14 +28,12 @@ const Login = () => {
   };
 
   const onSubmit = async (e) => {
-    // EDIT: เปลี่ยนเป็น async function
     e.preventDefault();
     if (!validate()) return;
 
     try {
-      const result = await login(form); // EDIT: เรียก login จาก useAuth
+      const result = await login(form);
       if (result?.error) {
-        // จัดการกับ error จาก login
         setErrors({ submit: result.error });
       }
     } catch (error) {
@@ -57,14 +54,6 @@ const Login = () => {
             <FcGoogle className="mr-3 h-5 w-5" />
             Continue with Google
           </Button>
-          <Button
-            variant="outline"
-            className="w-full justify-center py-3"
-            onClick={() => navigate("/admin")}
-          >
-            <FaUserShield className="mr-3 h-5 w-5 text-gray-600" />
-            Log in as Admin (Temporary)
-          </Button>
         </div>
 
         <div className="relative">
@@ -84,6 +73,7 @@ const Login = () => {
             value={form.email}
             onChange={onChange}
             className="py-3"
+            disabled={state.loading}
           />
           {errors.email && (
             <p className="text-sm text-red-500">{errors.email}</p>
@@ -96,12 +86,12 @@ const Login = () => {
             value={form.password}
             onChange={onChange}
             className="py-3"
+            disabled={state.loading}
           />
           {errors.password && (
             <p className="text-sm text-red-500">{errors.password}</p>
           )}
 
-          {/* EDIT: เพิ่มการแสดง error จาก server */}
           {errors.submit && (
             <p className="text-sm text-red-500">{errors.submit}</p>
           )}
@@ -118,8 +108,9 @@ const Login = () => {
           <Button
             type="submit"
             className="w-full justify-center py-3 bg-gray-900 text-white font-semibold hover:bg-gray-800"
+            disabled={state.loading}
           >
-            Log in
+            {state.loading ? "Logging in..." : "Log in"}
           </Button>
         </form>
 

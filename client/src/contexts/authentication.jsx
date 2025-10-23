@@ -34,6 +34,12 @@ function AuthProvider(props) {
       const response = await axios.get(
         `${API_BASE_URL}/auth/get-user`
       );
+      
+      // เก็บ role ใน localStorage
+      if (response.data?.role) {
+        localStorage.setItem('userRole', response.data.role);
+      }
+      
       setState((prevState) => ({
         ...prevState,
         user: response.data,
@@ -64,10 +70,30 @@ function AuthProvider(props) {
       const token = response.data.access_token;
       localStorage.setItem("token", token);
 
-      // ดึงและตั้งค่าข้อมูลผู้ใช้
-      setState((prevState) => ({ ...prevState, loading: false, error: null }));
-      navigate("/");
-      await fetchUser();
+      // ดึงข้อมูลผู้ใช้เพื่อเช็ค role
+      const userResponse = await axios.get(`${API_BASE_URL}/auth/get-user`);
+      const userRole = userResponse.data?.role;
+      
+      // เก็บ role ใน localStorage
+      if (userRole) {
+        localStorage.setItem('userRole', userRole);
+      }
+      
+      // อัปเดต state
+      setState((prevState) => ({ 
+        ...prevState, 
+        loading: false, 
+        error: null,
+        user: userResponse.data
+      }));
+      
+      // เช็ค role และ redirect ตาม role
+      if (userRole === 'admin') {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
+      
     } catch (error) {
       setState((prevState) => ({
         ...prevState,
@@ -101,6 +127,7 @@ function AuthProvider(props) {
   // ล็อกเอาท์ผู้ใช้
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
     setState({ user: null, error: null, loading: null });
     navigate("/");
   };
@@ -140,8 +167,6 @@ function AuthProvider(props) {
       {props.children}
     </AuthContext.Provider>
   );
-
-  
 }
 
 // Hook สำหรับใช้งาน AuthContext

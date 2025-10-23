@@ -4,7 +4,6 @@ import LoadingScreen from "@/components/LoadingScreen";
 
 function AuthenticationRoute({ isLoading, isAuthenticated, children }) {
   if (isLoading === null || isLoading) {
-    // สถานะกำลังโหลดข้อมูลหรือยังไม่มีข้อมูล
     return (
       <div className="flex flex-col min-h-screen">
         <div className="min-h-screen md:p-8">
@@ -15,11 +14,15 @@ function AuthenticationRoute({ isLoading, isAuthenticated, children }) {
   }
 
   if (isAuthenticated) {
-    // คืนค่า null ขณะที่ Navigate ทำการเปลี่ยนเส้นทาง
-    return <Navigate to="/" replace />;
+    // EDIT: เช็ค role และ redirect ตาม role
+    const userRole = localStorage.getItem('userRole'); // เก็บ role ใน localStorage
+    if (userRole === 'admin') {
+      return <Navigate to="/admin" replace />;
+    } else {
+      return <Navigate to="/" replace />;
+    }
   }
 
-  // ผู้ใช้มีการยืนยันตัวตนและมีบทบาทที่ถูกต้อง
   return children;
 }
 

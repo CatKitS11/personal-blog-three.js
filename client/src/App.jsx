@@ -7,7 +7,6 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import BlogDetail from "./components/BlogDetail";
 import SignUp from "./components/SignUp";
 import Login from "./components/Login";
-import AdminLogin from "@/components/pages/admin/AdminLogin";
 import AdminLayout from "@/components/pages/admin/AdminLayout";
 import ArticleManagement from "@/components/pages/admin/ArticleManagement";
 import CategoryManagement from "@/components/pages/admin/CategoryManagement";
@@ -47,7 +46,7 @@ function App() {
         {/* 📖 Blog Detail - ไม่ต้อง protect */}
         <Route path="/post/:postId" element={<BlogDetail />} />
 
-        {/* 🔐 Login/Signup - ใช้ AuthenticationRoute (ถ้า login แล้วจะ redirect ไป home) */}
+        {/* 🔐 Login/Signup - ใช้ AuthenticationRoute (ถ้า login แล้วจะ redirect ตาม role) */}
         <Route
           path="/signup"
           element={
@@ -98,9 +97,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        {/* 🔐 Admin Login - ไม่ต้อง protect (หน้า login ของ admin) */}
-        <Route path="/admin/login" element={<AdminLogin />} />
 
         {/* 👨‍💼 Admin Routes - ใช้ ProtectedRoute (ต้อง login + role = admin) */}
         <Route
