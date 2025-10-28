@@ -24,7 +24,7 @@ function App() {
   const { isAuthenticated, state } = useAuth();
 
   const isAdminRoute = location.pathname.startsWith("/admin");
-  const hideFooter = location.pathname === "/signup" || isAdminRoute;
+  const hideFooter = location.pathname === "/signup" || location.pathname === "/login" || isAdminRoute;
   const hideNavbar = isAdminRoute;
 
   return (

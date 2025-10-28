@@ -32,9 +32,10 @@ const NavBar = () => {
       {/* Logo */}
       <a
         href="/"
-        className="text-2xl font-bold text-gray-800 mx-16 max-md:mx-2"
+        className="text-4xl font-semibold text-[#333333] mx-16 max-md:mx-2"
       >
-        hh.
+        hh
+        <span className="text-2xl font-bold text-[#059729]">.</span>
       </a>
 
       {/* Navigation Buttons */}
@@ -45,13 +46,13 @@ const NavBar = () => {
             <Link to="/login">
               <Button
                 variant="outline"
-                className="text-gray-700 border-gray-300 hover:bg-gray-50 rounded-full"
+                className="py-5 px-8 font-medium text-gray-700 border-gray-800 hover:bg-gray-50 rounded-full"
               >
                 Log in
               </Button>
             </Link>
             <Link to="/signup">
-              <Button className="bg-gray-800 text-white hover:bg-gray-700 rounded-full">
+              <Button className="py-5 px-8 font-medium bg-gray-800 text-white hover:bg-gray-700 rounded-full">
                 Sign up
               </Button>
             </Link>

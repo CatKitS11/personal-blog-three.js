@@ -110,8 +110,8 @@ const SignUp = () => {
     <div className="min-h-screen bg-white">
       <main className="px-4">
         <div className="max-w-3xl mx-auto">
-          <div className="mt-10 md:mt-16 rounded-xl border border-gray-200 bg-[#eeebe6] p-6 md:p-10">
-            <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">Sign up</h1>
+          <div className="mt-10 md:mt-16 rounded-xl border border-gray-200 bg-[#EFEEEB] p-6 md:p-10">
+            <h1 className="text-4xl font-semibold text-center text-[#333333] mb-8">Sign up</h1>
             <form onSubmit={onSubmit} className="max-w-xl mx-auto space-y-6 flex flex-col gap-2 text-left">
               <div>
                 <label className="block text-sm text-gray-600 mb-2">Name</label>
@@ -192,7 +192,7 @@ const SignUp = () => {
               <div className="flex justify-center">
                 <Button 
                   type="submit" 
-                  className="bg-gray-900 text-white px-6 rounded-full"
+                  className="py-[24px] px-12 bg-gray-900 text-white font-light rounded-full"
                   disabled={state.loading || 
                     availabilityStatus.username.available === false || 
                     availabilityStatus.email.available === false ||
@@ -207,7 +207,7 @@ const SignUp = () => {
 
             <p className="text-center text-sm text-gray-600 mt-6">
               Already have an account?{" "}
-              <a href="/login" className="underline hover:text-gray-800">
+              <a href="/login" className="underline font-semibold hover:text-gray-800">
                 Log in
               </a>
             </p>
