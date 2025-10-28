@@ -1,22 +1,23 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/authentication';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UploadCloud, X } from "lucide-react";
+import { UploadCloud, X, ArrowLeft } from "lucide-react";
 import { useAdminPosts } from '../../../hooks/useAdminPosts';
 import { usePostImageUpload } from '../../../hooks/usePostImageUpload';
 import axios from 'axios';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
-const CreateArticle = () => {
+const EditArticle = () => {
   const navigate = useNavigate();
+  const { postId } = useParams();
   const { state } = useAuth();
   const { user } = state;
-  const { createPost } = useAdminPosts();
+  const { updatePost } = useAdminPosts();
   const { uploadPostImage, uploading, error: uploadError } = usePostImageUpload();
   
   const [formData, setFormData] = useState({
@@ -24,34 +25,58 @@ const CreateArticle = () => {
     description: '',
     content: '',
     category_id: '',
-    author_name: '',
     status_id: 2,
     image: ''
   });
   
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fetchingPost, setFetchingPost] = useState(true);
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState(null);
 
-  // Fetch categories
+  // Fetch post data
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchPost = async () => {
+      setFetchingPost(true);
       try {
+        const response = await axios.get(`${apiBaseUrl}/posts/${postId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        const post = response.data;
+        
+        // Need to get category_id from category name
         const categoriesResponse = await axios.get(`${apiBaseUrl}/categories`);
-        setCategories(categoriesResponse.data.categories || []);
+        const cats = categoriesResponse.data.categories || [];
+        setCategories(cats);
+        
+        const category = cats.find(c => c.name === post.category);
+        const statusId = post.status === 'Published' ? 1 : post.status === 'Draft' ? 2 : 3;
+        
+        setFormData({
+          title: post.title || '',
+          description: post.description || '',
+          content: post.content || '',
+          category_id: category?.id.toString() || '',
+          status_id: statusId,
+          image: post.image || ''
+        });
+        
+        setImagePreview(post.image);
       } catch (error) {
-        console.error('Error fetching categories:', error);
-        setCategories([
-          { id: 1, name: 'Cat' },
-          { id: 2, name: 'General' },
-          { id: 3, name: 'Inspiration' }
-        ]);
+        console.error('Error fetching post:', error);
+        alert('Failed to load article');
+        navigate('/admin/article-management');
+      } finally {
+        setFetchingPost(false);
       }
     };
-    
-    fetchData();
-  }, []);
+
+    fetchPost();
+  }, [postId]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -71,34 +96,27 @@ const CreateArticle = () => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       setErrors(prev => ({ ...prev, image: 'Please select an image file' }));
       return;
     }
 
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       setErrors(prev => ({ ...prev, image: 'Image size must be less than 5MB' }));
       return;
     }
 
     try {
-      console.log('Starting upload...', file.name, file.size); // Debug log
-      
       const result = await uploadPostImage(file);
       
       if (result) {
-        console.log('Upload successful:', result); // Debug log
         setFormData(prev => ({ ...prev, image: result.imageUrl }));
         setImagePreview(result.imageUrl);
         setErrors(prev => ({ ...prev, image: null }));
       } else {
-        console.log('Upload failed - no result'); // Debug log
         setErrors(prev => ({ ...prev, image: uploadError || 'Failed to upload image' }));
       }
     } catch (error) {
-      console.error('Upload catch error:', error); // Debug log
       setErrors(prev => ({ ...prev, image: uploadError || 'Failed to upload image' }));
     }
   };
@@ -137,10 +155,10 @@ const CreateArticle = () => {
         image: formData.image
       };
       
-      const result = await createPost(postData);
+      const result = await updatePost(postId, postData);
       
       if (result.success) {
-        alert(`Article ${isDraft ? 'saved as draft' : 'published'} successfully!`);
+        alert(`Article ${isDraft ? 'saved as draft' : 'updated and published'} successfully!`);
         navigate('/admin/article-management');
       } else {
         alert(`Error: ${result.error}`);
@@ -153,10 +171,26 @@ const CreateArticle = () => {
     }
   };
 
+  if (fetchingPost) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-lg">Loading article...</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center pb-8 mb-4 mt-4 border-b">
-        <h1 className="text-2xl font-bold">Create article</h1>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => navigate('/admin/article-management')}
+            className="text-gray-600 hover:text-gray-800"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-2xl font-bold">Edit article</h1>
+        </div>
         <div className="flex gap-6">
           <Button 
             className="px-10 py-6 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 transition-colors"
@@ -171,28 +205,19 @@ const CreateArticle = () => {
             onClick={() => handleSubmit(false)}
             disabled={loading}
           >
-            {loading ? 'Publishing...' : 'Save and publish'}
+            {loading ? 'Updating...' : 'Update and publish'}
           </Button>
         </div>
       </div>
 
       <div className="bg-white p-8 rounded-lg shadow-sm">
         <div className="space-y-6">
-          {/* Thumbnail Image - Top section */}
+          {/* Thumbnail Image */}
           <div className="space-y-4">
             <label className="flex text-sm font-medium text-[#75716B]">
               Thumbnail image
             </label>
             
-            {/* Debug info */}
-            {/* {process.env.NODE_ENV === 'development' && (
-              <div className="text-xs text-gray-500 p-2 bg-gray-100 rounded">
-                <p>API URL: {import.meta.env.VITE_API_BASE_URL}</p>
-                <p>Token exists: {localStorage.getItem('token') ? 'Yes' : 'No'}</p>
-                <p>User role: {localStorage.getItem('userRole')}</p>
-                {uploadError && <p className="text-red-500">Upload Error: {uploadError}</p>}
-              </div>
-            )} */}
             <div className="flex flex-row gap-6 items-end">
               {imagePreview ? (
                 <div className="relative w-full max-w-md">
@@ -270,10 +295,10 @@ const CreateArticle = () => {
               <Input 
                 id="author" 
                 type="text" 
-                placeholder="Thompson P."
+                placeholder="Author name"
                 value={user?.name || ''}
                 disabled={true}
-                className="w-full bg-[#EFEEEB] cursor-not-allowed"
+                className="w-1/2 bg-[#EFEEEB] cursor-not-allowed"
               />
             </div>
 
@@ -338,4 +363,4 @@ const CreateArticle = () => {
   );
 };
 
-export default CreateArticle;
+export default EditArticle;

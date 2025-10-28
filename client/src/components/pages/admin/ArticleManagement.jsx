@@ -8,14 +8,22 @@ const ArticleManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [deleteModal, setDeleteModal] = useState({ open: false, postId: null, postTitle: "" });
 
   const handleDelete = async (postId) => {
-    if (window.confirm("Are you sure you want to delete this article?")) {
-      const result = await deletePost(postId);
-      if (!result.success) {
-        alert(result.error);
-      }
-    }
+    const post = posts.find(p => p.id === postId);
+    setDeleteModal({ open: true, postId, postTitle: post?.title || "" });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteModal.postId) return;
+    const result = await deletePost(deleteModal.postId);
+    setDeleteModal({ open: false, postId: null, postTitle: "" });
+    if (!result.success) alert(result.error);
+  };
+
+  const cancelDelete = () => {
+    setDeleteModal({ open: false, postId: null, postTitle: "" });
   };
 
   const filteredPosts = posts.filter((post) => {
@@ -29,6 +37,51 @@ const ArticleManagement = () => {
 
   return (
     <div>
+      {/* DELETE MODAL */}
+      {deleteModal.open && (
+        <>
+          {/* BACKDROP - Blurred background */}
+          <div 
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50"
+            onClick={cancelDelete}
+          />
+          
+          {/* MODAL DIALOG */}
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div className="bg-[#F9F8F6] rounded-2xl shadow-xl p-8 max-w-md w-full mx-8 relative pointer-events-auto">
+              {/* Close button */}
+              <button 
+                onClick={cancelDelete}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              
+              {/* Content */}
+              <h2 className="text-2xl font-bold text-[#333333] my-2 py-8">Delete article</h2>
+              <p className="text-[] mb-6">Do you want to delete this article?</p>
+              
+              {/* Buttons */}
+              <div className="flex justify-center gap-6 mb-8 mt-4">
+                <button
+                  onClick={cancelDelete}
+                  className="px-6 py-2 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-6 py-2 bg-[#333333] text-white rounded-full hover:bg-[#2a2a2a] transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
       <div className="flex justify-between items-center py-8 px-4 mb-4 border-b">
         <h1 className="text-3xl font-bold text-[#333333]">
           Article management
