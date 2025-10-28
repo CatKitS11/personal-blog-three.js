@@ -114,16 +114,16 @@ const ArticleManagement = () => {
                         index % 2 === 0 ? "bg-white" : "bg-[#EFEEEB]"
                       }`}
                     >
-                      <td className="py-4 px-4 text-[#333333]">
+                      <td className="flex py-4 px-4 text-[#333333]">
                         {article.title}
                       </td>
-                      <td className="py-4 px-4 text-[#333333]">
+                      <td className="block-inline text-left py-4 px-4 text-[#333333]">
                         {article.category}
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="block-inline text-left py-4 px-4 text-[#333333]">
                         <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                          <span className="text-[#333333]">
+                          <span className={`w-2 h-2 rounded-full ${article.status === "Published" ? "bg-[#12B279]" : "bg-[#75716B]"}`}></span>
+                          <span className={`${article.status === "Published" ? "text-[#12B279]" : "text-[#75716B]"}`}>
                             {article.status || "Draft"}
                           </span>
                         </div>
@@ -133,12 +133,12 @@ const ArticleManagement = () => {
                           <Link
                             to={`/admin/article-management/edit/${article.id}`}
                           >
-                            <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                            <button className="flex items-center text-gray-400 hover:text-gray-600 transition-colors">
                               <Edit size={18} />
                             </button>
                           </Link>
                           <button
-                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                            className="flex text-gray-400 items-center hover:text-gray-600 transition-colors"
                             onClick={() => handleDelete(article.id)}
                           >
                             <Trash2 size={18} />

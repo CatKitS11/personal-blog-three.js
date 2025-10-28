@@ -10,6 +10,7 @@ import Login from "./components/Login";
 import AdminLayout from "@/components/pages/admin/AdminLayout";
 import ArticleManagement from "@/components/pages/admin/ArticleManagement";
 import CategoryManagement from "@/components/pages/admin/CategoryManagement";
+import AdminProfile from '@/components/pages/admin/AdminProfile';
 import Notification from "@/components/pages/admin/Notification";
 import CreateArticle from "@/components/pages/admin/CreateArticle";
 import Profile from "@/components/pages/Profile";
@@ -116,7 +117,7 @@ function App() {
           <Route path="article-management" element={<ArticleManagement />} />
           <Route path="article-management/create" element={<CreateArticle />} />
           <Route path="category-management" element={<CategoryManagement />} />
-          <Route path="profile" element={<Profile />} />
+          <Route path="/admin/profile" element=<AdminProfile /> />
           <Route path="notification" element={<Notification />} />
           <Route path="reset-password" element={<ResetPassword />} />
         </Route>
