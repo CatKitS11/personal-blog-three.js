@@ -59,11 +59,13 @@ model statuses {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model users {
-  id          String     @id @db.Uuid
-  username    String     @unique @db.VarChar(50)
-  name        String     @db.VarChar(100)
-  profile_pic String?
-  role        String     @db.VarChar(10)
-  comments    comments[]
-  likes       likes[]
+  id                  String     @id @db.Uuid
+  username            String     @unique @db.VarChar(50)
+  name                String     @db.VarChar(100)
+  role                String     @db.VarChar(10)
+  profile_picture_url String?
+  email               String?
+  bio                 String?    @db.VarChar(120)
+  comments            comments[]
+  likes               likes[]
 }

@@ -20,7 +20,7 @@ const AdminProfile = () => {
     currentFilename: null
   });
 
-  const { uploadProfilePicture, deleteImage, uploading: imageUploading, error: uploadError, setUploadError } = useImageUpload();
+  const { uploadProfilePicture, deleteImage, uploading: imageUploading, error: uploadError, setError: setUploadError } = useImageUpload();
 
   useEffect(() => {
     if (user) {
@@ -167,7 +167,7 @@ const AdminProfile = () => {
                 </div>
               )}
             </div>
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center pt-5 justify-center">
               <label 
                 htmlFor="admin-profile-picture"
                 className="inline-flex items-center gap-2 px-6 py-2.5 bg-white border-2 border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"

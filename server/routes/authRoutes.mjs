@@ -119,7 +119,7 @@ authRouter.get("/get-user", async (req, res) => {
 
         // ดึงข้อมูลผู้ใช้จากฐานข้อมูล PostgreSQL
         const query = `
-            SELECT id, username, name, email, role, profile_picture_url
+            SELECT id, username, name, email, role, profile_picture_url, bio
             FROM users 
             WHERE id = $1
         `;
@@ -191,18 +191,27 @@ authRouter.put("/reset-password", async (req, res) => {
 authRouter.put("/profile", protectUser, async (req, res) => {
     try {
         const userId = req.user.id; // Supabase user ID
-        const { name, username, profile_picture } = req.body;
+        const { name, username, profile_picture, bio } = req.body;
 
-        // อัปเดตข้อมูลผู้ใช้ในฐานข้อมูลด้วย SQL
+        // กัน username ซ้ำ (ยกเว้นของตัวเอง) // EDIT
+        const dupCheck = await pool.query(
+          `SELECT 1 FROM users WHERE username = $1 AND id <> $2 LIMIT 1`,
+          [username, userId]
+        ); // EDIT
+        if (dupCheck.rowCount > 0) { // EDIT
+          return res.status(400).json({ success: false, error: "This username is already taken" }); // EDIT
+        } // EDIT
+
         const updateQuery = `
                 UPDATE users
                 SET name = $1,
                     username = $2,
-                    profile_picture_url = $3
-                WHERE id = $4
-                RETURNING id, name, username, profile_picture_url, email;
+                    profile_picture_url = $3,
+                    bio = $4
+                WHERE id = $5
+                RETURNING id, name, username, profile_picture_url, bio, email;
             `;
-        const updateValues = [name, username, profile_picture, userId];
+        const updateValues = [name, username, profile_picture, bio, userId];
 
         const { rows } = await pool.query(updateQuery, updateValues);
 
@@ -220,11 +229,13 @@ authRouter.put("/profile", protectUser, async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Update profile error:", error);
-        res.status(500).json({
-            success: false,
-            error: "Failed to update profile"
-        });
+        console.error("Update profile error:", error); // EDIT
+        // ส่งรายละเอียด code/detail ออกไปเพื่อดีบักได้ // EDIT
+        return res.status(500).json({
+          success: false,
+          error: error?.detail || error?.message || "Failed to update profile", // EDIT
+          code: error?.code || undefined, // EDIT
+        }); // EDIT
     }
 });
 
