@@ -17,7 +17,7 @@ const AdminLayout = () => {
       icon: Folder,
     },
     { name: "Profile", path: "/admin/profile", icon: User },
-    { name: "Notification", path: "/admin/notification", icon: Bell },
+    // { name: "Notification", path: "/admin/notification", icon: Bell },
     { name: "Reset password", path: "/admin/reset-password", icon: Lock },
   ];
 
