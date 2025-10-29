@@ -61,10 +61,10 @@ const NavBar = () => {
           // Authenticated user section
           <div className="flex items-center gap-4">
             {/* Notifications */}
-            <div className="relative">
+            {/* <div className="relative">
               <Bell className="w-6 h-6 text-gray-600 cursor-pointer" />
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
-            </div>
+            </div> */}
 
             {/* User Profile Dropdown */}
             <DropdownMenu>

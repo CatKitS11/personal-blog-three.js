@@ -16,6 +16,7 @@ import CreateArticle from "@/components/pages/admin/CreateArticle";
 import EditArticle from "@/components/pages/admin/EditArticle";
 import CreateCategory from "@/components/pages/admin/CreateCategory";
 import EditCategory from "@/components/pages/admin/EditCategory";
+import AdminResetPassword from "@/components/pages/admin/AdminResetPassword";
 import Profile from "@/components/pages/Profile";
 import ResetPassword from "@/components/pages/ResetPassword";
 
@@ -127,7 +128,6 @@ function App() {
             element={<EditArticle />}
           />
           <Route path="category-management" element={<CategoryManagement />} />
-          <Route path="category-management" element={<CategoryManagement />} />
           <Route
             path="category-management/create"
             element={<CreateCategory />}
@@ -138,7 +138,7 @@ function App() {
           />
           <Route path="/admin/profile" element={<AdminProfile />} />
           <Route path="notification" element={<Notification />} />
-          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="reset-password" element={<AdminResetPassword />} />
         </Route>
       </Routes>
 
