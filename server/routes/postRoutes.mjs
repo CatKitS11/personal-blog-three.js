@@ -75,7 +75,7 @@ postRouter.get("/:postId", async (req, res) => {
     const { postId } = req.params;
     const post = await prisma.posts.findUnique({
       where: { id: parseInt(postId) },
-      include: { categories: true, statuses: true },
+      include: { categories: true, statuses: true ,users: true},
     });
 
     if (!post) {
@@ -94,6 +94,11 @@ postRouter.get("/:postId", async (req, res) => {
       content: post.content,
       status: post.statuses?.status || null,
       likes_count: post.likes_count || 0,
+      author: { 
+        name: post.users?.name || 'Unknown',
+        avatar: post.users?.profile_picture_url || '',
+        bio: post.users?.bio || ''
+      }
     };
 
     return res.status(200).json(response);

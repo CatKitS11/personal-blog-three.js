@@ -66,7 +66,7 @@ const BlogDetail = () => {
                 {post.category}
               </span>
               <span className="text-gray-500 text-sm">
-                {new Date(post.createdAt).toLocaleDateString("en-GB", {
+                {new Date(post.date).toLocaleDateString("en-GB", {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
@@ -81,7 +81,7 @@ const BlogDetail = () => {
 
             {/* Post Excerpt */}
             <p className="text-lg text-gray-600 leading-relaxed mb-8">
-              {post.excerpt}
+              {post.description}
             </p>
           </div>
 
@@ -91,7 +91,7 @@ const BlogDetail = () => {
           </div>
 
           {/* Like and Share Bar */}
-          <LikeAndShareBar postId={postId} likes={post.likes || 0} />
+          <LikeAndShareBar postId={postId} likes={post.likes_count || 0} />
 
           {/* Comments */}
           <CommentPost postId={postId} className="" />

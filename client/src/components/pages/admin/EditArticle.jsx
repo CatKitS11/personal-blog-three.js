@@ -174,7 +174,7 @@ const EditArticle = () => {
         description: formData.description,
         content: formData.content,
         category_id: parseInt(formData.category_id),
-        status_id: isDraft ? 2 : 1,
+        status_id: isDraft ? 1 : 2,
         image: formData.image,
       };
 

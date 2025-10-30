@@ -45,8 +45,10 @@ model posts {
   content     String
   status_id   Int?
   likes_count Int?        @default(0)
+  author_id   String?     @db.Uuid
   comments    comments[]
   likes       likes[]
+  users       users?      @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   categories  categories? @relation(fields: [category_id], references: [id], onUpdate: NoAction)
   statuses    statuses?   @relation(fields: [status_id], references: [id], onUpdate: NoAction)
 }
@@ -68,4 +70,5 @@ model users {
   bio                 String?    @db.VarChar(120)
   comments            comments[]
   likes               likes[]
+  posts               posts[]
 }

@@ -22,7 +22,7 @@ export const signUpValidationSchema = {
     password: (value) => {
       if (!value) return "Password is required";
       if (value.length < 6) return "Password must be at least 6 characters";
-      if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) return "Password must contain at least one uppercase letter, one lowercase letter, and one number";
+      if (!/(?=.*[a-z])(?=.*\d)/.test(value)) return "Password must contain at least one lowercase letter, and one number";
       return null;
     }
   };
