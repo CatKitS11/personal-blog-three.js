@@ -12,9 +12,24 @@ const apiClient = axios.create({
   },
 });
 
+// EDIT: เพิ่ม default author
+const DEFAULT_AUTHOR = {
+  name: 'Unknown Author',
+  bio: 'I am a passionate writer who loves sharing insights and stories with readers around the world.',
+  avatar: 'https://res.cloudinary.com/dcbpjtd1r/image/upload/v1728449784/my-blog-post/xgfy0xnvyemkklcqodkg.jpg'
+};
+
+// EDIT: Helper function
+const enrichPostsWithAuthor = (posts) => {
+  return posts.map(post => ({
+    ...post,
+    author: post.author || DEFAULT_AUTHOR  // EDIT: เพิ่ม default author
+  }));
+};
+
 export const useBlogPosts = (initialParams = {}) => {
-  const [allPosts, setAllPosts] = useState([]); // เก็บข้อมูลทั้งหมด
-  const [posts, setPosts] = useState([]); // ข้อมูลที่แสดง
+  const [allPosts, setAllPosts] = useState([]);
+  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
@@ -29,7 +44,7 @@ export const useBlogPosts = (initialParams = {}) => {
   const loadPosts = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // ใช้ axios โดยตรงแทน fetchBlogPosts
       const response = await apiClient.get('/posts', {
@@ -37,14 +52,22 @@ export const useBlogPosts = (initialParams = {}) => {
           limit: 100 // เพิ่ม limit เพื่อให้ได้ข้อมูลทั้งหมด
         }
       });
-      
+
       const data = response.data;
-      setAllPosts(data.posts || []);
+      // EDIT: เพิ่ม console.log เพื่อดูว่า API ส่งอะไรมา
+      console.log('API Response:', data.posts?.[0]); // ดู post แรก
+      console.log('Has author?', data.posts?.[0]?.author);
+
+      const enrichedPosts = enrichPostsWithAuthor(data.posts || []); // EDIT: เพิ่ม author
+      // EDIT: ดูผลหลัง enrich
+      console.log('After enrich:', enrichedPosts?.[0]?.author);
+
+      setAllPosts(enrichedPosts); // EDIT: ใช้ enrichedPosts
       setParams({ category: 'Highlight', page: 1 });
-      
+
       // Filter ข้อมูลตาม category ที่เลือก
-      filterPostsByCategory(data.posts || [], 'Highlight', 1);
-      
+      filterPostsByCategory(enrichedPosts, 'Highlight', 1); // EDIT: ใช้ enrichedPosts
+
     } catch (err) {
       setError(err.message);
       setAllPosts([]);
@@ -54,21 +77,23 @@ export const useBlogPosts = (initialParams = {}) => {
     }
   };
 
+  // ... existing code (ไม่ต้องแก้ส่วนอื่น) ...
+
   // Filter ข้อมูลตาม category และ page
   const filterPostsByCategory = (postsToFilter, category, page = 1) => {
     let filteredPosts = postsToFilter;
-    
+
     // Filter ตาม category
     if (category && category !== 'Highlight') {
       filteredPosts = postsToFilter.filter(post => post.category === category);
     }
-    
+
     // Pagination
     const postsPerPage = 6;
     const startIndex = (page - 1) * postsPerPage;
     const endIndex = startIndex + postsPerPage;
     const paginatedPosts = filteredPosts.slice(startIndex, endIndex);
-    
+
     setPosts(paginatedPosts);
     setPagination({
       currentPage: page,
@@ -85,19 +110,14 @@ export const useBlogPosts = (initialParams = {}) => {
   };
 
   const changeCategory = (category) => {
-    filterPostsByCategory(allPosts, category, 1); // Reset to page 1 when changing category
+    filterPostsByCategory(allPosts, category, 1);
     setParams(prev => ({ ...prev, category, page: 1 }));
   };
-
-  // const changeLimit = (limit) => {
-  //   // ไม่ต้องใช้เพราะเราใช้ client-side pagination
-  //   console.log('Limit change not implemented for client-side filtering');
-  // };
 
   // Load posts on mount only
   useEffect(() => {
     loadPosts();
-  }, []); // Empty dependency array - only run once
+  }, []);
 
   return {
     posts,
@@ -108,7 +128,6 @@ export const useBlogPosts = (initialParams = {}) => {
     loadPosts,
     changePage,
     changeCategory,
-    // changeLimit,
     refetch: loadPosts,
     allPosts,
   };

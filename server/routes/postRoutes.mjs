@@ -34,7 +34,7 @@ postRouter.get("/", async (req, res) => {
       where,
       skip,
       take: limit,
-      include: { categories: true, statuses: true },
+      include: { categories: true, statuses: true, users: true },
       orderBy: { date: "desc" },
     });
 
@@ -48,6 +48,11 @@ postRouter.get("/", async (req, res) => {
       content: post.content,
       status: post.statuses?.status || null,
       likes_count: post.likes_count || 0,
+      author: post.users ? {
+        name: post.users.name,
+        bio: post.users.bio || 'I am a passionate writer who loves sharing insights and stories with readers around the world.',
+        avatar: post.users.profile_picture_url || 'https://res.cloudinary.com/dcbpjtd1r/image/upload/v1728449784/my-blog-post/xgfy0xnvyemkklcqodkg.jpg'
+      } : null
     }));
 
     const totalPages = Math.ceil(totalPosts / limit);
