@@ -49,7 +49,17 @@ authRouter.post("/register", async (req, res) => {
                 .json({ error: "Failed to create user. Please try again." });
         }
 
-        const supabaseUserId = data.user.id;
+        // ดึง user ID จาก Supabase (หลัง signUp สำเร็จ)
+        console.log("Supabase signUp response:", data); // EDIT: เพิ่ม log
+        const supabaseUserId = data.user?.id; 
+        
+        // ตรวจสอบว่าได้ user ID หรือไม่ 
+        if (!supabaseUserId) { 
+            console.error("Cannot get user ID from Supabase:", data); 
+            return res.status(500).json({ error: "Failed to create user account. Please try again or contact support." });
+        }
+        
+        console.log("Creating user in public.users with ID:", supabaseUserId); // EDIT: เพิ่ม log
 
         // เพิ่มข้อมูลผู้ใช้ในฐานข้อมูล PostgreSQL
         const query = `
@@ -58,15 +68,17 @@ authRouter.post("/register", async (req, res) => {
                 RETURNING *;
               `;
 
-        const values = [supabaseUserId, username, name, email, "user", null]; // ใช้ profile_picture_url
+        const values = [supabaseUserId, username, name, email, "user", null];
 
         const { rows } = await pool.query(query, values);
+        console.log("User created successfully in public.users:", rows[0]); // EDIT: เพิ่ม log
         res.status(201).json({
             message: "User created successfully",
             user: rows[0],
         });
     } catch (error) {
-        res.status(500).json({ error: "An error occurred during registration" });
+        console.error("Registration error:", error); // EDIT: เพิ่ม log รายละเอียด
+        res.status(500).json({ error: "An error occurred during registration", details: error.message }); // EDIT: ส่ง error message กลับไป
     }
 });
 
