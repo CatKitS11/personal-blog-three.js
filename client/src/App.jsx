@@ -6,6 +6,7 @@ import Footer from "./components/Footer";
 import { Routes, Route, useLocation } from "react-router-dom";
 import BlogDetail from "./components/BlogDetail";
 import SignUp from "./components/SignUp";
+import SignUpSuccess from "./components/SignUpSuccess";
 import Login from "./components/Login";
 import AdminLayout from "@/components/pages/admin/AdminLayout";
 import ArticleManagement from "@/components/pages/admin/ArticleManagement";
@@ -32,6 +33,7 @@ function App() {
   const hideFooter =
     location.pathname === "/signup" ||
     location.pathname === "/login" ||
+    location.pathname === "/sign-up/success" ||
     isAdminRoute;
   const hideNavbar = isAdminRoute;
 
@@ -65,6 +67,11 @@ function App() {
               <SignUp />
             </AuthenticationRoute>
           }
+        />
+
+        <Route
+          path="/sign-up/success"
+          element={<SignUpSuccess />}
         />
 
         <Route

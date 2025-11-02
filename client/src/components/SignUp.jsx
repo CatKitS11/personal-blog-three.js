@@ -60,7 +60,7 @@ const SignUp = () => {
         show: true, 
         type: "error", 
         message: "Please fix the errors before submitting. Username or email may already be taken." 
-      }); // EDIT: ข้อความชัดเจนขึ้น
+      });
       return;
     }
     
@@ -89,12 +89,13 @@ const SignUp = () => {
           message: result.error 
         });
       } else {
-        // Success - จะ redirect โดย context แล้ว // EDIT
+        // Success - แสดง alert แล้ว redirect
         setAlert({ 
           show: true, 
           type: "success", 
-          message: "Account created successfully! Redirecting..." 
+          message: "Account created successfully! Redirecting to success page..." 
         });
+        // context จะ redirect ไป /sign-up/success อัตโนมัติ
       }
     } catch (error) {
       console.error("Registration error:", error);
@@ -102,7 +103,7 @@ const SignUp = () => {
         show: true, 
         type: "error", 
         message: error.response?.data?.error || error.message || "An error occurred during registration" 
-      }); // EDIT: error handling ดีขึ้น
+      });
     }
   };
 
