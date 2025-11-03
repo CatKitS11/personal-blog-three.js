@@ -80,7 +80,7 @@ const BlogDetail = () => {
             </h1>
 
             {/* Post Excerpt */}
-            <p className="text-lg text-gray-600 leading-relaxed mb-8">
+            <p className="flex flex-row items-start text-lg text-gray-600 leading-relaxed mb-8">
               {post.description}
             </p>
           </div>

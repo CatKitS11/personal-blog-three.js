@@ -61,7 +61,7 @@ function BlogCard({
             {title}
           </h2>
         </Link>
-        <p className="text-muted-foreground text-sm mb-4 flex-grow line-clamp-3">
+        <p className="flex flex-row items-start text-muted-foreground text-sm mb-4 flex-grow line-clamp-3">
           {description}
         </p>
         <div className="flex items-center text-sm">

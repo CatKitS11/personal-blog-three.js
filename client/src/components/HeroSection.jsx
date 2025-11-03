@@ -3,18 +3,18 @@ import heroImage from '../assets/14d0ff1ec045ed1d618b25c84aa4327331ecdaaf.jpg';
 
 const HeroSection = () => {
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8 bg-white">
+    <div className="mx-auto max-w-7xl my-36 px-6 py-8 bg-white">
       <div className="grid grid-cols-1 lg:grid-cols-3 items-center gap-8">
         {/* Left: Headline */}
         <div className="order-2 lg:order-1 max-w-md mx-auto lg:mx-0 text-center lg:text-left">
-          <h1 className="text-4xl lg:text-4xl xl:text-5xl font-bold text-gray-800 leading-tight mb-6">
-            Stay<br />
-            Informed,<br />
-            Stay Inspired
+          <h1 className="flex flex-col items-end text-4xl lg:text-4xl xl:text-5xl font-bold text-gray-800 leading-tight mb-6 mx-6">
+            <span>Stay</span>
+            <span>Informed,</span>
+            <span>Stay Inspired</span>
           </h1>
-          <p className="text-base lg:text-base xl:text-lg text-gray-600 leading-relaxed">
+          <div className="flex flex-col justify-end items-end text-base lg:text-base xl:text-lg text-gray-600 leading-relaxed">
             Discover a World of Knowledge at Your Fingertips. Your Daily Dose of Inspiration and Information.
-          </p>
+          </div>
         </div>
 
         {/* Center: Image */}
