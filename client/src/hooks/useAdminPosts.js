@@ -14,6 +14,9 @@ export const useAdminPosts = () => {
       const response = await axios.get(`${apiBaseUrl}/posts`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        params: {
+          includeAll: true
         }
       });
       setPosts(response.data.posts);

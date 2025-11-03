@@ -14,9 +14,10 @@ postRouter.get("/", async (req, res) => {
     const limit = parseInt(req.query.limit) || 6;
     const category = req.query.category;
     const keyword = req.query.keyword;
+    const includeAll = req.query.includeAll === 'true';
 
     const skip = (page - 1) * limit;
-    const where = {};
+    const where = includeAll ? {} : {statuses: {status: "Published"}};
 
     if (category) {
       where.categories = { name: category };
