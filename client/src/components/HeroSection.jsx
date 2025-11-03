@@ -42,16 +42,12 @@ const HeroSection = () => {
             <p className="leading-relaxed text-sm lg:text-sm xl:text-base">
               I am a full-stack developer and 3D visual artist who combines
               design, engineering logic, and AI-driven tools to build intuitive
-              and visually engaging digital experiences. My work spans React,
-              Next.js, Node.js, PostgreSQL, Tailwind, and Three.js, with a
-              growing focus on integrating AI automation and intelligent
-              workflows into modern web applications.
+              and visually engaging digital experiences.
             </p>
             <p className="leading-relaxed text-sm lg:text-sm xl:text-base">
               With roots in engineering and architectural visualization, I value
-              clean systems, thoughtful UI/UX, and solutions that balance
-              aesthetics and performance. I enjoy exploring how AI can enhance
-              creativity, accelerate development, and open new possibilities for
+              clean systems, I enjoy exploring how AI can enhance
+              creativity,  and open new possibilities for
               interactive web experiences.
             </p>
           </div>
