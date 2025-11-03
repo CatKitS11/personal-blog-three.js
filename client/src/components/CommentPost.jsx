@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { Send } from "lucide-react";
-import { useAuth } from '../contexts/authentication';
-import AuthModal from './AuthModel';
+import { useAuth } from "../contexts/authentication";
+import AuthModal from "./AuthModel";
 
 const CommentPost = ({ postId }) => {
   const [newComment, setNewComment] = useState("");
@@ -38,12 +38,12 @@ const CommentPost = ({ postId }) => {
 
   const handleSubmitComment = (e) => {
     e.preventDefault();
-    
+
     if (!isAuthenticated) {
       setShowAuthModal(true);
       return;
     }
-    
+
     if (!newComment.trim()) return;
 
     const comment = {
@@ -67,7 +67,7 @@ const CommentPost = ({ postId }) => {
   return (
     <>
       {/* EDIT: ใช้ AuthModal component แทน */}
-      <AuthModal 
+      <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         action="comment on"
@@ -81,7 +81,7 @@ const CommentPost = ({ postId }) => {
         {/* Comment Form */}
         <form onSubmit={handleSubmitComment} className="mb-10">
           <div className="flex flex-col gap-4">
-            <textarea 
+            <textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="What are your thoughts?"
@@ -90,7 +90,7 @@ const CommentPost = ({ postId }) => {
             />
             <Button
               type="submit"
-              className="rounded-full self-end px-8 py-4 bg-gray-800 text-white font-medium hover:bg-gray-700"
+              className="rounded-full self-end px-10 py-6 bg-gray-800 text-white font-medium text-md hover:bg-gray-700"
             >
               Send
             </Button>
@@ -98,25 +98,31 @@ const CommentPost = ({ postId }) => {
         </form>
 
         {/* Comments List */}
-        <div className="space-y-10">
+        <div className="flex flex-col gap-10">
           {comments.map((comment) => (
-            <div key={comment.id} className="flex items-start gap-5">
-              {/* Avatar */}
-              <div className="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-xl font-bold text-gray-500">
-                  {comment.avatar}
-                </span>
-              </div>
-
-              {/* Comment Content */}
-              <div className="flex-1">
-                <div className="flex items-baseline gap-3 mb-2">
-                  <h4 className="font-bold text-gray-800">{comment.name}</h4>
-                  <span className="text-xs text-gray-400">{comment.date}</span>
+            <div key={comment.id} className="flex flex-col items-start gap-4 border-b border-gray-300 pb-8">
+              <div className="flex items-start gap-4">
+                {/* Avatar */}
+                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-xl font-bold text-gray-500">
+                    {comment.avatar}
+                  </span>
                 </div>
-                <p className="font-serif text-gray-700 leading-relaxed">
-                  {comment.content}
-                </p>
+
+                {/* Comment Content */}
+                <div className="flex">
+                  <div className="flex flex-col items-start gap-3 mb-2">
+                    <div className="font-bold text-gray-800">
+                      {comment.name}
+                    </div>
+                    <span className="text-xs text-gray-400">
+                      {comment.date}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex text-gray-700 leading-relaxed">
+                {comment.content}
               </div>
             </div>
           ))}
