@@ -3,44 +3,65 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import BlogCard from "@/components/BlogCard";
 import { CategoryCombobox } from "@/components/Combobox";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useBlogPosts } from "@/hooks/useBlogPosts";
 import { useCategories } from "@/hooks/useCategories";
 
 import { useNavigate } from "react-router-dom";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from "@/components/ui/command";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandItem,
+  CommandEmpty,
+} from "@/components/ui/command";
 
 const ArticleSection = () => {
-  const { categories: dbCategories, loading: categoriesLoading } = useCategories();
-  const categories = ['Highlight', ...dbCategories.map(c => c.name)];
+  const { categories: dbCategories, loading: categoriesLoading } =
+    useCategories();
+  const categories = ["Highlight", ...dbCategories.map((c) => c.name)];
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
   console.log(categories);
-  const { 
+  const {
     posts,
     loading,
     error,
     pagination,
     changeCategory,
     changePage,
-    allPosts, 
+    allPosts,
   } = useBlogPosts();
-  
-  const navigate = useNavigate(); 
-  const [query, setQuery] = useState(""); 
-  const [openSearch, setOpenSearch] = useState(false); 
-  
-  const results = useMemo(() => { 
-    if (!query.trim()) return [];
-    const q = query.toLowerCase();
+
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [openSearch, setOpenSearch] = useState(false);
+
+  // EDIT: Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 500); // รอ 500ms หลังหยุดพิมพ์
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const results = useMemo(() => {
+    if (!debouncedQuery.trim() || debouncedQuery.length < 2) return []; // EDIT: ใช้ debouncedQuery + ต้องพิมพ์อย่างน้อย 2 ตัวอักษร
+    const q = debouncedQuery.toLowerCase();
     return (allPosts || [])
-      .filter(p =>
-        [p.title, p.description, p.content].some(t =>
+      .filter((p) =>
+        [p.title, p.description, p.content].some((t) =>
           (t || "").toLowerCase().includes(q)
         )
       )
       .slice(0, 6);
-  }, [query, allPosts]);
+  }, [debouncedQuery, allPosts]);
 
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
@@ -69,10 +90,18 @@ const ArticleSection = () => {
       </h1>
       <div className="flex max-xs:flex-col items-center justify-between bg-stone-100 mb-4 mt-4 p-2 rounded-lg">
         <div className="flex flex-col max-xs:hidden max-xs:w-full items-center justify-center">
-          <Tabs value={selectedCategory} onValueChange={handleCategoryChange} className="w-full">
+          <Tabs
+            value={selectedCategory}
+            onValueChange={handleCategoryChange}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-8 max-xs:grid-cols-1 max-xs:grid-rows-1">
               {categories.map((category) => (
-                <TabsTrigger key={category} value={category} className="my-1 mx-2">
+                <TabsTrigger
+                  key={category}
+                  value={category}
+                  className="my-1 mx-2"
+                >
                   {category}
                 </TabsTrigger>
               ))}
@@ -81,43 +110,74 @@ const ArticleSection = () => {
         </div>
         {/* Search autocomplete */}
         <div className="flex items-center justify-center max-xs:w-full">
-          <Popover open={openSearch} onOpenChange={setOpenSearch}> 
-            <PopoverTrigger asChild> 
-              <div className="relative w-72 max-xs:w-full"> 
+          <Popover open={openSearch} onOpenChange={setOpenSearch}>
+            <PopoverTrigger asChild>
+              <div className="relative w-72 max-xs:w-full">
                 <input
-                  className="w-full bg-white h-10 rounded-md px-3 border" 
+                  className="w-full bg-white h-10 rounded-md px-3 border"
                   placeholder="Search"
-                  value={query} 
-                  onChange={(e) => { setQuery(e.target.value); setOpenSearch(true); }} 
-                  onFocus={() => query && setOpenSearch(true)} 
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    if (e.target.value.trim()) setOpenSearch(true); // EDIT: เปิดเฉพาะมีค่า
+                  }}
+                  onFocus={() => query.trim() && setOpenSearch(true)} // EDIT: เพิ่ม .trim()
+                  onKeyDown={(e) => {
+                    // EDIT: เพิ่ม keyboard support
+                    if (e.key === "Escape") {
+                      setOpenSearch(false);
+                      setQuery("");
+                    }
+                  }}
+                  autoComplete="off" // EDIT: ปิด browser autocomplete
                 />
                 <button
                   type="button"
-                  className="absolute right-1 top-1.5 px-2 py-1 border rounded-md" 
+                  className="absolute right-1 top-1.5 px-2 py-1 border rounded-md"
                 >
                   <Search className="w-4 h-4" />
                 </button>
               </div>
             </PopoverTrigger>
-            <PopoverContent className="p-0 w-[28rem] max-xs:w-[calc(100vw-2rem)]" align="end"> 
-              <Command> 
-                {/* <CommandInput
-                  placeholder="Type to search…"
-                  value={query}
-                  onValueChange={setQuery}
-                /> */}
+            <PopoverContent
+              className="p-0 w-auto bg-white max-xs:w-[calc(100vw-2rem)]"
+              align="end"
+              onOpenAutoFocus={(e) => e.preventDefault()} // EDIT: ป้องกัน auto focus จาก popover
+            >
+              <Command shouldFilter={false}>
+                {" "}
+                {/* EDIT: ปิด internal filtering ของ Command */}
                 <CommandList>
+                  {debouncedQuery !== query && ( // EDIT: แสดง loading
+                    <div className="bg-white p-4 text-center text-sm text-gray-500">
+                      Searching...
+                    </div>
+                  )}
+                  {debouncedQuery === query &&
+                    results.length === 0 &&
+                    debouncedQuery.length >= 2 && ( // EDIT: แสดง no results
+                      <div className="bg-white p-4 text-center text-sm text-gray-500">
+                        No articles found
+                      </div>
+                    )}
                   {results.map((p) => (
                     <CommandItem
                       key={p.id}
-                      onSelect={() => { 
+                      onSelect={() => {
                         setOpenSearch(false);
                         setQuery("");
                         navigate(`/post/${p.id}`);
                       }}
-                      className="cursor-pointer bg-white"
+                      className="cursor-pointer border-b py-2 bg-white hover:bg-gray-100"
                     >
-                      {p.title}
+                      <div className="flex flex-col gap-1">
+                        {" "}
+                        {/* EDIT: ปรับ layout */}
+                        <div className="font-medium">{p.title}</div>
+                        <div className="text-xs text-gray-500">
+                          {p.category}
+                        </div>
+                      </div>
                     </CommandItem>
                   ))}
                 </CommandList>
@@ -127,14 +187,14 @@ const ArticleSection = () => {
         </div>
         {/* end search */}
         <div className="hidden max-xs:flex items-center justify-center max-xs:w-full">
-          <CategoryCombobox 
-            value={selectedCategory} 
-            onChange={handleCategoryChange} 
-            className="w-full" 
+          <CategoryCombobox
+            value={selectedCategory}
+            onChange={handleCategoryChange}
+            className="w-full"
           />
         </div>
       </div>
-      
+
       {loading ? (
         <div className="flex justify-center items-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
@@ -144,20 +204,20 @@ const ArticleSection = () => {
         <>
           <div className="flex flex-row flex-wrap gap-4">
             {posts.map((post) => (
-              <BlogCard 
-                key={post.id} 
+              <BlogCard
+                key={post.id}
                 id={post.id}
-                {...post} 
-                className="w-[calc(50%-0.5rem)] max-xs:w-full" 
+                {...post}
+                className="w-[calc(50%-0.5rem)] max-xs:w-full"
               />
             ))}
           </div>
-          
+
           {/* Replace pagination with View More button */}
           {pagination.currentPage < pagination.totalPages && (
             <div className="flex justify-center mt-8 mb-8">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => handlePageChange(pagination.currentPage + 1)}
                 className="px-6 py-2"
               >
