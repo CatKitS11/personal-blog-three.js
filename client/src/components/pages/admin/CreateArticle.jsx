@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UploadCloud, X } from "lucide-react";
+import { useCategories } from '@/hooks/useCategories';
 import { useAdminPosts } from '../../../hooks/useAdminPosts';
 import { usePostImageUpload } from '../../../hooks/usePostImageUpload';
 import axios from 'axios';
@@ -18,6 +19,7 @@ const CreateArticle = () => {
   const { user } = state;
   const { createPost } = useAdminPosts();
   const { uploadPostImage, uploading, error: uploadError } = usePostImageUpload();
+  const { categories: dbCategories, loading: categoriesLoading } = useCategories();
   
   const [formData, setFormData] = useState({
     title: '',
@@ -29,29 +31,10 @@ const CreateArticle = () => {
     image: ''
   });
   
-  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState(null);
 
-  // Fetch categories
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const categoriesResponse = await axios.get(`${apiBaseUrl}/categories`);
-        setCategories(categoriesResponse.data.categories || []);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-        setCategories([
-          { id: 1, name: 'Cat' },
-          { id: 2, name: 'General' },
-          { id: 3, name: 'Inspiration' }
-        ]);
-      }
-    };
-    
-    fetchData();
-  }, []);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -250,8 +233,8 @@ const CreateArticle = () => {
                 <SelectTrigger className="w-1/2">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
+                <SelectContent className="bg-white">
+                  {dbCategories.map((category) => (
                     <SelectItem key={category.id} value={category.id.toString()}>
                       {category.name}
                     </SelectItem>

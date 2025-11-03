@@ -30,12 +30,12 @@ function BlogCard({
     if (typeof author === 'object' && author !== null) {
       return {
         name: author.name || 'Unknown',
-        avatar: author.avatar || null  // EDIT: เปลี่ยนเป็น null เพื่อให้มี fallback
+        avatar: author.avatar || null
       };
     }
     return {
       name: author || 'Unknown',
-      avatar: null  // EDIT: เปลี่ยนเป็น null
+      avatar: null
     };
   };
 

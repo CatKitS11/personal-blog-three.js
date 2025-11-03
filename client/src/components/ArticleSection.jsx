@@ -3,17 +3,19 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import BlogCard from "@/components/BlogCard";
 import { CategoryCombobox } from "@/components/Combobox";
-import { useState, useMemo } from "react"; // [changed] เพิ่ม useMemo
+import { useState, useMemo } from "react";
 import { useBlogPosts } from "@/hooks/useBlogPosts";
+import { useCategories } from "@/hooks/useCategories";
 
-import { useNavigate } from "react-router-dom"; // [changed] นำทางเมื่อเลือกผลค้นหา
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"; // [changed] สำหรับกล่องผลลัพธ์
-import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from "@/components/ui/command"; // [changed] รายการค้นหา
+import { useNavigate } from "react-router-dom";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from "@/components/ui/command";
 
 const ArticleSection = () => {
-  const categories = ["Highlight", "Cat", "Inspiration", "General"];
-  const [selectedCategory, setSelectedCategory] = useState("Highlight");
-  
+  const { categories: dbCategories, loading: categoriesLoading } = useCategories();
+  const categories = ['Highlight', ...dbCategories.map(c => c.name)];
+  const [selectedCategory, setSelectedCategory] = useState(categories[0]);
+  console.log(categories);
   const { 
     posts,
     loading,
@@ -68,9 +70,9 @@ const ArticleSection = () => {
       <div className="flex max-xs:flex-col items-center justify-between bg-stone-100 mb-4 mt-4 p-2 rounded-lg">
         <div className="flex flex-col max-xs:hidden max-xs:w-full items-center justify-center">
           <Tabs value={selectedCategory} onValueChange={handleCategoryChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 max-xs:grid-cols-1 max-xs:grid-rows-1">
+            <TabsList className="grid w-full grid-cols-8 max-xs:grid-cols-1 max-xs:grid-rows-1">
               {categories.map((category) => (
-                <TabsTrigger key={category} value={category}>
+                <TabsTrigger key={category} value={category} className="my-1 mx-2">
                   {category}
                 </TabsTrigger>
               ))}
