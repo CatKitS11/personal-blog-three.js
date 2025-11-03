@@ -71,9 +71,9 @@ const NavBar = () => {
               <DropdownMenuTrigger className="flex items-center gap-2 hover:bg-gray-50 p-2 focus:outline-none">
                 <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
                   {user?.profile_picture_url ? (
-                    <img 
-                      src={user.profile_picture_url} 
-                      alt="Profile" 
+                    <img
+                      src={user.profile_picture_url}
+                      alt="Profile"
                       className="w-8 h-8 rounded-full object-cover"
                     />
                   ) : (
@@ -83,8 +83,18 @@ const NavBar = () => {
                 <span className="text-gray-700 font-medium">
                   {user?.name || user?.email || "User"}
                 </span>
-                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg
+                  className="w-4 h-4 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 bg-white">
@@ -92,11 +102,19 @@ const NavBar = () => {
                   <User className="w-4 h-4 mr-2" />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/reset-password")}>
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (user?.role === "admin") {
+                      navigate("/admin/reset-password");
+                    } else {
+                      navigate("/reset-password");
+                    }
+                  }}
+                >
                   <Key className="w-4 h-4 mr-2" />
                   Reset Password
                 </DropdownMenuItem>
-                {user?.role === 'admin' && (
+                {user?.role === "admin" && (
                   <DropdownMenuItem onClick={() => navigate("/admin")}>
                     <Settings className="w-4 h-4 mr-2" />
                     Admin Panel
@@ -114,14 +132,16 @@ const NavBar = () => {
 
       {/* Mobile Menu */}
       <div className="hidden max-xs:block">
-        <Select onValueChange={(v) => {
-          if (v === "signup") navigate("/signup");
-          if (v === "login") navigate("/login");
-          if (v === "profile") navigate("/profile");
-          if (v === "reset-password") navigate("/reset-password");
-          if (v === "logout") handleLogout();
-          if (v === "admin" && user?.role === "admin") navigate("/admin");
-        }}>
+        <Select
+          onValueChange={(v) => {
+            if (v === "signup") navigate("/signup");
+            if (v === "login") navigate("/login");
+            if (v === "profile") navigate("/profile");
+            if (v === "reset-password") navigate("/reset-password");
+            if (v === "logout") handleLogout();
+            if (v === "admin" && user?.role === "admin") navigate("/admin");
+          }}
+        >
           <SelectTrigger className="w-[40px] [&>svg]:hidden border-none">
             <SelectValue
               placeholder={
@@ -147,7 +167,7 @@ const NavBar = () => {
                 <SelectItem value="reset-password" className="justify-center">
                   Reset Password
                 </SelectItem>
-                {user?.role === 'admin' && (
+                {user?.role === "admin" && (
                   <SelectItem value="admin" className="justify-center">
                     Admin Panel
                   </SelectItem>

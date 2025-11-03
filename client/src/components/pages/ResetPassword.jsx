@@ -41,6 +41,12 @@ const ResetPassword = () => {
     setMessage('');
 
     try {
+      console.log('Sending reset password request:', { // EDIT: เพิ่ม log
+        currentPassword: formData.currentPassword ? '***' : 'EMPTY',
+        newPassword: formData.newPassword ? '***' : 'EMPTY',
+        hasToken: !!localStorage.getItem('token')
+      });
+
       const response = await axios.put(
         `${import.meta.env.VITE_API_BASE_URL}/auth/reset-password`,
         {
@@ -54,6 +60,8 @@ const ResetPassword = () => {
         }
       );
 
+      console.log('Response:', response.data); // EDIT: เพิ่ม log
+
       if (response.data.success) {
         setMessage('Password updated successfully!');
         setFormData({
@@ -61,8 +69,12 @@ const ResetPassword = () => {
           newPassword: '',
           confirmPassword: ''
         });
+      } else {
+        setMessage(response.data.error || 'Failed to update password');
       }
     } catch (error) {
+      console.error('Full error:', error); // EDIT: เพิ่ม log detail
+      console.error('Response data:', error.response?.data); // EDIT: เพิ่ม log
       setMessage(error.response?.data?.error || 'Failed to update password');
     } finally {
       setLoading(false);

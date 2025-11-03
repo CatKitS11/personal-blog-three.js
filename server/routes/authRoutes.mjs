@@ -148,54 +148,69 @@ authRouter.get("/get-user", async (req, res) => {
     }
 });
 
-authRouter.put("/reset-password", async (req, res) => {
-    const token = req.headers.authorization?.split(" ")[1]; // ดึง token จาก Authorization header
-    const { oldPassword, newPassword } = req.body;
+authRouter.put("/reset-password", protectUser, async (req, res) => {
+    
+    const { currentPassword, newPassword } = req.body; // EDIT: ต้องเป็น currentPassword ไม่ใช่ oldPassword
 
-    if (!token) {
-        return res.status(401).json({ error: "Unauthorized: Token missing" });
-    }
+    console.log("Extracted values:", {
+        currentPassword: currentPassword ? '***' : 'UNDEFINED',
+        newPassword: newPassword ? '***' : 'UNDEFINED'
+    });
 
-    if (!newPassword) {
-        return res.status(400).json({ error: "New password is required" });
+    if (!currentPassword || !newPassword) {
+        console.log("Validation failed: Missing passwords");
+        return res.status(400).json({ 
+            success: false,
+            error: "Current password and new password are required" 
+        });
     }
 
     try {
-        // ตั้งค่า session ด้วย token ที่ส่งมา
-        const { data: userData, error: userError } = await supabase.auth.getUser(
-            token
+        const userEmail = req.user.email;
+        console.log("Attempting password reset for:", userEmail); // EDIT
+
+        // STEP 1: ตรวจสอบรหัสผ่านเดิม
+        const { data: verifyData, error: verifyError } = await supabase.auth.signInWithPassword({
+            email: userEmail,
+            password: currentPassword,
+        });
+
+        if (verifyError || !verifyData.session) {
+            console.error("Password verification failed:", verifyError?.message); // EDIT
+            return res.status(400).json({ 
+                success: false,
+                error: "Current password is incorrect" 
+            });
+        }
+
+        console.log("Password verified successfully"); // EDIT
+
+        // STEP 2: Update password ด้วย session ที่ได้จากการ login
+        const { error: updateError } = await supabase.auth.updateUser(
+            { password: newPassword }
         );
 
-        if (userError) {
-            return res.status(401).json({ error: "Unauthorized: Invalid token" });
-        }
-
-        // ตรวจสอบรหัสผ่านเดิมโดยลองล็อกอิน
-        const { data: loginData, error: loginError } =
-            await supabase.auth.signInWithPassword({
-                email: userData.user.email,
-                password: oldPassword,
+        if (updateError) {
+            console.error("Password update failed:", updateError.message); // EDIT
+            return res.status(400).json({ 
+                success: false,
+                error: updateError.message 
             });
-
-        if (loginError) {
-            return res.status(400).json({ error: "Invalid old password" });
         }
 
-        // อัปเดตรหัสผ่านของผู้ใช้
-        const { data, error } = await supabase.auth.updateUser({
-            password: newPassword,
-        });
-
-        if (error) {
-            return res.status(400).json({ error: error.message });
-        }
+        console.log("Password updated successfully for:", userEmail); // EDIT
 
         res.status(200).json({
+            success: true,
             message: "Password updated successfully",
-            user: data.user,
         });
     } catch (error) {
-        res.status(500).json({ error: "Internal server error" });
+        console.error("Reset password error:", error.message, error.stack); // EDIT
+        res.status(500).json({ 
+            success: false,
+            error: "Internal server error",
+            details: error.message
+        });
     }
 });
 

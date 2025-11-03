@@ -66,7 +66,7 @@ const AdminResetPassword = () => {
       const response = await axios.put(
         `${apiBaseUrl}/auth/reset-password`,
         {
-          oldPassword: formData.currentPassword,
+          currentPassword: formData.currentPassword,
           newPassword: formData.newPassword,
         },
         {
