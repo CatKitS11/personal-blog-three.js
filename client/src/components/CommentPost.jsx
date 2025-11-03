@@ -3,40 +3,42 @@ import { Button } from "./ui/button";
 import { Send } from "lucide-react";
 import { useAuth } from "../contexts/authentication";
 import AuthModal from "./AuthModel";
+import { useComments } from "../hooks/useComments";
 
 const CommentPost = ({ postId }) => {
   const [newComment, setNewComment] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [comments, setComments] = useState([
-    {
-      id: 1,
-      name: "Jacob Lash",
-      avatar: "JL",
-      date: "12 September 2004 at 18:30",
-      content:
-        "Great article! I learned so much about cats. My cat does exactly what you described.",
-    },
-    {
-      id: 2,
-      name: "Ahri",
-      avatar: "A",
-      date: "12 September 2004 at 18:30",
-      content:
-        "This is very informative. Thank you for sharing your knowledge about feline behavior.",
-    },
-    {
-      id: 3,
-      name: "Mimi mama",
-      avatar: "MM",
-      date: "12 September 2004 at 18:30",
-      content:
-        "I love cats! This article perfectly captures why they are such amazing companions.",
-    },
-  ]);
+  const { comments, loading, error, addComment } = useComments(postId);
+  // const [comments, setComments] = useState([
+  //   {
+  //     id: 1,
+  //     name: "Jacob Lash",
+  //     avatar: "JL",
+  //     date: "12 September 2004 at 18:30",
+  //     content:
+  //       "Great article! I learned so much about cats. My cat does exactly what you described.",
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Ahri",
+  //     avatar: "A",
+  //     date: "12 September 2004 at 18:30",
+  //     content:
+  //       "This is very informative. Thank you for sharing your knowledge about feline behavior.",
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "Mimi mama",
+  //     avatar: "MM",
+  //     date: "12 September 2004 at 18:30",
+  //     content:
+  //       "I love cats! This article perfectly captures why they are such amazing companions.",
+  //   },
+  // ]);
 
   const { isAuthenticated } = useAuth();
 
-  const handleSubmitComment = (e) => {
+  const handleSubmitComment = async (e) => {
     e.preventDefault();
 
     if (!isAuthenticated) {
@@ -46,22 +48,12 @@ const CommentPost = ({ postId }) => {
 
     if (!newComment.trim()) return;
 
-    const comment = {
-      id: comments.length + 1,
-      name: "Anonymous User",
-      avatar: "AU",
-      date: new Date().toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      content: newComment,
-    };
-
-    setComments([...comments, comment]);
-    setNewComment("");
+    try {
+      await addComment(newComment);
+      setNewComment("");
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -98,16 +90,32 @@ const CommentPost = ({ postId }) => {
         </form>
 
         {/* Comments List */}
+        {error && <div className="text-red-500 mb-4">{error}</div>}
+        {loading && <div className="text-gray-500">Loading comments...</div>}
         <div className="flex flex-col gap-10">
-          {comments.map((comment) => (
-            <div key={comment.id} className="flex flex-col items-start gap-4 border-b border-gray-300 pb-8">
+        {([...comments].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+          ).map((comment) => (
+            <div
+              key={comment.id}
+              className="flex flex-col items-start gap-4 border-b border-gray-300 pb-8"
+            >
               <div className="flex items-start gap-4">
                 {/* Avatar */}
-                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-xl font-bold text-gray-500">
-                    {comment.avatar}
-                  </span>
-                </div>
+                {comment.avatarUrl ? (
+                  <div className="w-12 h-12  bg-gray-200 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0">
+                    <img
+                      src={comment.avatarUrl}
+                      alt={comment.name}
+                      className="w-full aspect-[4/5] rounded-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-xl font-bold text-gray-500">
+                      {comment.name?.[0] || "U"}
+                    </span>
+                  </div>
+                )}
 
                 {/* Comment Content */}
                 <div className="flex">

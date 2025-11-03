@@ -2,6 +2,7 @@ import { Router } from "express";
 import validatePostData from "../middlewares/postValidation.mjs";
 import { PrismaClient } from "@prisma/client";
 import protectAdmin from "../middlewares/protectAdmin.mjs";
+import protectUser from "../middlewares/protectUser.mjs";
 
 const prisma = new PrismaClient();
 const postRouter = Router();
@@ -135,6 +136,37 @@ postRouter.post("/", protectAdmin, validatePostData, async (req, res) => {
   }
 });
 
+postRouter.post("/:postId/comments", protectUser, async (req, res) => {
+  try {
+    const { postId } = req.params;                                  
+    const { comment_text } = req.body;                               
+    if (!comment_text?.trim()) return res.status(400).json({ message: "Empty comment" });
+
+    const created = await prisma.comments.create({                   
+      data: {
+        post_id: parseInt(postId),
+        user_id: req.user.id, // ได้จาก protectUser (Supabase)       
+        comment_text,
+      },
+      include: { users: true },
+    });
+
+    return res.status(201).json({
+      id: created.id,
+      content: created.comment_text,
+      date: created.created_at,
+      user: {
+        id: created.user_id,
+        name: created.users?.name || "Unknown",
+        avatar: created.users?.profile_picture_url || "",
+      },
+    });
+  } catch (err) {
+    console.error("Create comment error:", err);                     
+    return res.status(500).json({ message: "Failed to create comment" });
+  }
+});
+
 // PUT /posts/:postId - Update post
 postRouter.put("/:postId", protectAdmin, validatePostData, async (req, res) => {
   try {
@@ -158,6 +190,33 @@ postRouter.put("/:postId", protectAdmin, validatePostData, async (req, res) => {
     return res.status(500).json({
       message: "Server could not update post because database connection",
     });
+  }
+});
+
+postRouter.get("/:postId/comments", async (req, res) => { 
+  try {
+    const { postId } = req.params; 
+    const rows = await prisma.comments.findMany({ 
+      where: { post_id: parseInt(postId) },       
+      include: { users: true },                   
+      orderBy: { created_at: "desc" },            
+    });                                           
+
+    const comments = rows.map((c) => ({           
+      id: c.id,                                   
+      content: c.comment_text,                    
+      date: c.created_at,                         
+      user: {                                     
+        id: c.user_id,                            
+        name: c.users?.name || "Unknown",         
+        avatar: c.users?.profile_picture_url || ""
+      },                                          
+    }));                                          
+
+    return res.status(200).json({ comments });    
+  } catch (err) {
+    console.error("Get comments error:", err);    
+    return res.status(500).json({ message: "Failed to get comments" });
   }
 });
 
