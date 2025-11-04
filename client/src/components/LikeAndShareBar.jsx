@@ -66,7 +66,7 @@ const LikeAndShareBar = ({ postId, likes = 0 }) => {
             variant="ghost"
             size="sm"
             onClick={handleLike}
-            disabled={loading} // EDIT: disable ขณะกำลังโหลด
+            disabled={loading} 
             className={`flex items-center gap-2 ${
               isLiked ? "text-red-500" : "text-gray-600"
             }`}
@@ -82,15 +82,14 @@ const LikeAndShareBar = ({ postId, likes = 0 }) => {
             variant="ghost"
             size="sm"
             onClick={handleCopyLink}
-            className={`${copied ? "text-green-600" : "text-gray-600"}`} // EDIT: เปลี่ยนสีเมื่อ copy สำเร็จ
+            className={`${copied ? "text-green-600" : "text-gray-600"}`}
           >
             {copied ? (
               <Check className="w-4 h-4 mr-2" />
             ) : (
               <Copy className="w-4 h-4 mr-2" />
             )}{" "}
-            {/* EDIT: เปลี่ยน icon */}
-            {copied ? "Copied!" : "Copy link"} {/* EDIT: เปลี่ยนข้อความ */}
+            {copied ? "Copied!" : "Copy link"}
           </Button>
 
           <Button
