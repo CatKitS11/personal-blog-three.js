@@ -42,7 +42,7 @@ function BlogCard({
   const authorInfo = getAuthorInfo();
 
   return (
-    <div className={`flex flex-col gap-4 px-2 py-2 ${className || ''}`}>
+    <div className={`flex flex-col gap-5 px-2 py-2 my-1 ${className || ''}`}>
       <Link to={`/post/${id}`} className="relative h-[212px] sm:h-[360px]">
         <img
           className="w-full h-full object-cover rounded-md"
@@ -61,7 +61,7 @@ function BlogCard({
             {title}
           </h2>
         </Link>
-        <p className="flex flex-row items-start text-muted-foreground text-sm mb-4 flex-grow line-clamp-3">
+        <p className="flex flex-row items-start text-left text-sm mb-4 flex-grow line-clamp-3">
           {description}
         </p>
         <div className="flex items-center text-sm">
