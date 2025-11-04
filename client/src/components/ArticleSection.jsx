@@ -52,7 +52,7 @@ const ArticleSection = () => {
   }, [query]);
 
   const results = useMemo(() => {
-    if (!debouncedQuery.trim() || debouncedQuery.length < 2) return []; // EDIT: ใช้ debouncedQuery + ต้องพิมพ์อย่างน้อย 2 ตัวอักษร
+    if (!debouncedQuery.trim() || debouncedQuery.length < 2) return [];
     const q = debouncedQuery.toLowerCase();
     return (allPosts || [])
       .filter((p) =>
@@ -84,11 +84,11 @@ const ArticleSection = () => {
   }
 
   return (
-    <div className="px-2 w-full">
+    <div className="px-0 w-full">
       <h1 className="text-2xl font-bold text-left font-poppins">
         Latest articles
       </h1>
-      <div className="flex max-xs:flex-col items-center justify-between bg-stone-100 mb-4 mt-4 p-2 rounded-lg">
+      <div className="flex max-xs:flex-col items-center justify-between bg-stone-100 rounded-lg py-3 px-5">
         <div className="flex flex-col max-xs:hidden max-xs:w-full items-center justify-center">
           <Tabs
             value={selectedCategory}
@@ -100,7 +100,7 @@ const ArticleSection = () => {
                 <TabsTrigger
                   key={category}
                   value={category}
-                  className="my-1 mx-2"
+                  className=""
                 >
                   {category}
                 </TabsTrigger>

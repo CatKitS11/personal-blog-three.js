@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
-import { Heart, Copy, Facebook, Linkedin, Twitter } from 'lucide-react';
-import { Button } from './ui/button';
-import { useAuth } from '../contexts/authentication';
-import AuthModal from './AuthModel';
-import { useLike } from '../hooks/useLike';
+import React, { useState } from "react";
+import { Heart, Copy, Check, Facebook, Linkedin, Twitter } from "lucide-react"; // EDIT: เพิ่ม Check icon
+import { Button } from "./ui/button";
+import { useAuth } from "../contexts/authentication";
+import AuthModal from "./AuthModel";
+import { useLike } from "../hooks/useLike";
 
 const LikeAndShareBar = ({ postId, likes = 0 }) => {
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [copied, setCopied] = useState(false); // EDIT: เพิ่ม state สำหรับ copy feedback
   const { isAuthenticated } = useAuth();
-  
+
   const { isLiked, likeCount, toggleLike, loading } = useLike(postId, likes);
 
   const handleLike = async () => {
@@ -16,40 +17,43 @@ const LikeAndShareBar = ({ postId, likes = 0 }) => {
       setShowAuthModal(true);
       return;
     }
-    
+
     await toggleLike();
   };
 
-  const handleCopyLink = () => {
-    const url = `${window.location.origin}/post/${postId}`;
-    navigator.clipboard.writeText(url);
-  };
+  const handleCopyLink = async () => {
+    // EDIT: เปลี่ยนเป็น async
+    try {
+      const url = `${window.location.origin}/post/${postId}`;
+      await navigator.clipboard.writeText(url); // EDIT: ใช้ await
 
-  const handleShare = (platform) => {
-    const url = `${window.location.origin}/post/${postId}`;
-    const title = document.title;
-    
-    let shareUrl = '';
-    switch (platform) {
-      case 'facebook':
-        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-        break;
-      case 'linkedin':
-        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
-        break;
-      case 'twitter':
-        shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
-        break;
-      default:
-        return;
+      setCopied(true); // EDIT: แสดง feedback
+
+      // EDIT: รีเซ็ตกลับเป็นปกติหลัง 2 วินาที
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to copy link:", error); // EDIT: จัดการ error
+      // Fallback สำหรับ browser เก่า
+      try {
+        const textArea = document.createElement("textarea");
+        textArea.value = `${window.location.origin}/post/${postId}`;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (fallbackError) {
+        console.error("Fallback copy failed:", fallbackError);
+      }
     }
-    
-    window.open(shareUrl, '_blank', 'width=600,height=400');
   };
 
   return (
     <>
-      <AuthModal 
+      <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         action="like"
@@ -64,10 +68,10 @@ const LikeAndShareBar = ({ postId, likes = 0 }) => {
             onClick={handleLike}
             disabled={loading} // EDIT: disable ขณะกำลังโหลด
             className={`flex items-center gap-2 ${
-              isLiked ? 'text-red-500' : 'text-gray-600'
+              isLiked ? "text-red-500" : "text-gray-600"
             }`}
           >
-            <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+            <Heart className={`w-4 h-4 ${isLiked ? "fill-current" : ""}`} />
             <span>{likeCount}</span>
           </Button>
         </div>
@@ -78,34 +82,39 @@ const LikeAndShareBar = ({ postId, likes = 0 }) => {
             variant="ghost"
             size="sm"
             onClick={handleCopyLink}
-            className="text-gray-600"
+            className={`${copied ? "text-green-600" : "text-gray-600"}`} // EDIT: เปลี่ยนสีเมื่อ copy สำเร็จ
           >
-            <Copy className="w-4 h-4 mr-2" />
-            Copy link
+            {copied ? (
+              <Check className="w-4 h-4 mr-2" />
+            ) : (
+              <Copy className="w-4 h-4 mr-2" />
+            )}{" "}
+            {/* EDIT: เปลี่ยน icon */}
+            {copied ? "Copied!" : "Copy link"} {/* EDIT: เปลี่ยนข้อความ */}
           </Button>
-          
+
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleShare('facebook')}
+            onClick={() => handleShare("facebook")}
             className="text-blue-600 hover:text-blue-700"
           >
             <Facebook className="w-4 h-4" />
           </Button>
-          
+
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleShare('linkedin')}
+            onClick={() => handleShare("linkedin")}
             className="text-blue-700 hover:text-blue-800"
           >
             <Linkedin className="w-4 h-4" />
           </Button>
-          
+
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleShare('twitter')}
+            onClick={() => handleShare("twitter")}
             className="text-blue-400 hover:text-blue-500"
           >
             <Twitter className="w-4 h-4" />
