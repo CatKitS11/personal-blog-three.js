@@ -221,6 +221,103 @@ postRouter.get("/:postId/comments", async (req, res) => {
   }
 });
 
+// GET /posts/:postId/like/status - Check if user liked this post
+postRouter.get("/:postId/like/status", protectUser, async (req, res) => { // EDIT: เพิ่ม endpoint
+  try {
+    const { postId } = req.params;
+    const userId = req.user.id;
+
+    const like = await prisma.likes.findUnique({
+      where: {
+        post_id_user_id: {
+          post_id: parseInt(postId),
+          user_id: userId
+        }
+      }
+    });
+
+    return res.status(200).json({ 
+      isLiked: !!like,
+      likeId: like?.id || null
+    });
+  } catch (err) {
+    console.error("Get like status error:", err);
+    return res.status(500).json({ message: "Failed to get like status" });
+  }
+});
+
+// POST /posts/:postId/like - Toggle like/unlike
+postRouter.post("/:postId/like", protectUser, async (req, res) => { // EDIT: เพิ่ม endpoint
+  try {
+    const { postId } = req.params;
+    const userId = req.user.id;
+    const postIdInt = parseInt(postId);
+
+    // เช็คว่า like อยู่แล้วหรือยัง
+    const existingLike = await prisma.likes.findUnique({
+      where: {
+        post_id_user_id: {
+          post_id: postIdInt,
+          user_id: userId
+        }
+      }
+    });
+
+    if (existingLike) {
+      // Unlike - ลบ like และลด likes_count
+      await prisma.likes.delete({
+        where: { id: existingLike.id }
+      });
+
+      await prisma.posts.update({
+        where: { id: postIdInt },
+        data: { likes_count: { decrement: 1 } }
+      });
+
+      const updatedPost = await prisma.posts.findUnique({
+        where: { id: postIdInt },
+        select: { likes_count: true }
+      });
+
+      return res.status(200).json({ 
+        success: true,
+        isLiked: false,
+        likesCount: updatedPost.likes_count || 0
+      });
+    } else {
+      // Like - เพิ่ม like และเพิ่ม likes_count
+      await prisma.likes.create({
+        data: {
+          post_id: postIdInt,
+          user_id: userId
+        }
+      });
+
+      await prisma.posts.update({
+        where: { id: postIdInt },
+        data: { likes_count: { increment: 1 } }
+      });
+
+      const updatedPost = await prisma.posts.findUnique({
+        where: { id: postIdInt },
+        select: { likes_count: true }
+      });
+
+      return res.status(200).json({ 
+        success: true,
+        isLiked: true,
+        likesCount: updatedPost.likes_count || 0
+      });
+    }
+  } catch (err) {
+    console.error("Toggle like error:", err);
+    return res.status(500).json({ 
+      success: false,
+      message: "Failed to toggle like" 
+    });
+  }
+});
+
 // DELETE /posts/:postId - Delete post
 postRouter.delete("/:postId", protectAdmin, async (req, res) => {
   try {

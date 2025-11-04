@@ -3,22 +3,21 @@ import { Heart, Copy, Facebook, Linkedin, Twitter } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuth } from '../contexts/authentication';
 import AuthModal from './AuthModel';
+import { useLike } from '../hooks/useLike';
 
 const LikeAndShareBar = ({ postId, likes = 0 }) => {
-  const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(likes);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  
   const { isAuthenticated } = useAuth();
+  
+  const { isLiked, likeCount, toggleLike, loading } = useLike(postId, likes);
 
-  const handleLike = () => {
+  const handleLike = async () => {
     if (!isAuthenticated) {
       setShowAuthModal(true);
       return;
     }
     
-    setIsLiked(!isLiked);
-    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+    await toggleLike();
   };
 
   const handleCopyLink = () => {
@@ -50,7 +49,6 @@ const LikeAndShareBar = ({ postId, likes = 0 }) => {
 
   return (
     <>
-      {/* EDIT: ใช้ AuthModal component แทน */}
       <AuthModal 
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
@@ -64,6 +62,7 @@ const LikeAndShareBar = ({ postId, likes = 0 }) => {
             variant="ghost"
             size="sm"
             onClick={handleLike}
+            disabled={loading} // EDIT: disable ขณะกำลังโหลด
             className={`flex items-center gap-2 ${
               isLiked ? 'text-red-500' : 'text-gray-600'
             }`}
