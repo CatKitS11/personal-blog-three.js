@@ -1,5 +1,5 @@
 const validatePostData = (req, res, next) => {
-    const { title, image, category_id, description, content, status_id } = req.body;
+    const { title, image, category_id, description, content, status_id, author_id } = req.body;
     
     // Validate title
     if (!title) {
@@ -44,6 +44,11 @@ const validatePostData = (req, res, next) => {
     // Validate status_id
     if (status_id !== undefined && status_id !== null && typeof status_id !== 'number') {
       return res.status(400).json({ message: "Status ID must be a number" });
+    }
+
+    // Validate author_id (optional but should be string UUID if provided)
+    if (author_id !== undefined && author_id !== null && typeof author_id !== 'string') {
+      return res.status(400).json({ message: "Author ID must be a string (UUID)" });
     }
   
     next(); // ถ้าผ่านทุก validation ให้ไปต่อ

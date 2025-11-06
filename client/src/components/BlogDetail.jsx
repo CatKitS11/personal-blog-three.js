@@ -5,6 +5,8 @@ import CardAuthor from "./CardAuthor";
 import LikeAndShareBar from "./LikeAndShareBar";
 import CommentPost from "./CommentPost";
 import { useBlogPost } from "../hooks/useBlogPostId";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 
 const BlogDetail = () => {
   const { postId } = useParams();
@@ -87,7 +89,59 @@ const BlogDetail = () => {
 
           {/* Post Content */}
           <div className="prose prose-lg max-w-none text-left">
-            <ReactMarkdown>{post.content}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw]}
+              components={{
+                img: ({ node, ...props }) => (
+                  <img
+                    {...props}
+                    className="rounded-lg shadow-md my-6 w-full object-cover"
+                    style={{ maxHeight: '500px' }}
+                  />
+                ),
+                h1: ({ node, ...props }) => (
+                  <h1 {...props} className="text-3xl font-bold mt-8 mb-4 text-gray-900" />
+                ),
+                h2: ({ node, ...props }) => (
+                  <h2 {...props} className="text-2xl font-bold mt-6 mb-3 text-gray-800" />
+                ),
+                h3: ({ node, ...props }) => (
+                  <h3 {...props} className="text-xl font-bold mt-4 mb-2 text-gray-800" />
+                ),
+                p: ({ node, ...props }) => (
+                  <p {...props} className="mb-4 leading-relaxed text-gray-700" />
+                ),
+                a: ({ node, ...props }) => (
+                  <a
+                    {...props}
+                    className="text-blue-600 hover:text-blue-800 underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  />
+                ),
+                ul: ({ node, ...props }) => (
+                  <ul {...props} className="list-disc list-inside my-4 space-y-2" />
+                ),
+                ol: ({ node, ...props }) => (
+                  <ol {...props} className="list-decimal list-inside my-4 space-y-2" />
+                ),
+                blockquote: ({ node, ...props }) => (
+                  <blockquote
+                    {...props}
+                    className="border-l-4 border-gray-300 pl-4 italic my-4 text-gray-600"
+                  />
+                ),
+                code: ({ node, inline, ...props }) =>
+                  inline ? (
+                    <code {...props} className="bg-gray-100 px-2 py-1 rounded text-sm font-mono" />
+                  ) : (
+                    <code {...props} className="block bg-gray-100 p-4 rounded-lg my-4 overflow-x-auto font-mono text-sm" />
+                  ),
+              }}
+            >
+              {post.content}
+            </ReactMarkdown>
           </div>
 
           {/* Like and Share Bar */}
