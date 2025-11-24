@@ -1,15 +1,22 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/authentication';
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/authentication";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { UploadCloud, X } from "lucide-react";
-import { useCategories } from '@/hooks/useCategories';
-import { useAdminPosts } from '../../../hooks/useAdminPosts';
-import { usePostImageUpload } from '../../../hooks/usePostImageUpload';
-import axios from 'axios';
+import { useCategories } from "@/hooks/useCategories";
+import { useAdminPosts } from "../../../hooks/useAdminPosts";
+import { usePostImageUpload } from "../../../hooks/usePostImageUpload";
+import MarkdownEditor from "@/components/MarkdownEditor";
+import axios from "axios";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -18,119 +25,155 @@ const CreateArticle = () => {
   const { state } = useAuth();
   const { user } = state;
   const { createPost } = useAdminPosts();
-  const { uploadPostImage, uploading, error: uploadError } = usePostImageUpload();
-  const { categories: dbCategories, loading: categoriesLoading } = useCategories();
-  
+  const {
+    uploadPostImage,
+    uploading,
+    error: uploadError,
+  } = usePostImageUpload();
+  const { categories: dbCategories, loading: categoriesLoading } =
+    useCategories();
+
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    content: '',
-    category_id: '',
-    author_name: '',
-    status_id: 2,
-    image: ''
+    title: "",
+    description: "",
+    content: "",
+    category_id: "",
+    author_name: "",
+    status_id: 1, // Default to Draft (id 1)
+    image: "",
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState(null);
 
-
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
+  const handleInputChange = useCallback((field, value) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
-    
-    if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: null
-      }));
-    }
-  };
+
+    setErrors((prev) => {
+      if (prev[field]) {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      }
+      return prev;
+    });
+  }, []);
+
+  // Stable callback for content editor
+  const handleContentChange = useCallback((value) => {
+    handleInputChange("content", value);
+  }, [handleInputChange]);
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setErrors(prev => ({ ...prev, image: 'Please select an image file' }));
+    if (!file.type.startsWith("image/")) {
+      setErrors((prev) => ({ ...prev, image: "Please select an image file" }));
       return;
     }
 
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      setErrors(prev => ({ ...prev, image: 'Image size must be less than 5MB' }));
+      setErrors((prev) => ({
+        ...prev,
+        image: "Image size must be less than 5MB",
+      }));
       return;
     }
 
     try {
-      console.log('Starting upload...', file.name, file.size); // Debug log
-      
+      console.log("Starting upload...", file.name, file.size); // Debug log
+
       const result = await uploadPostImage(file);
-      
+
       if (result) {
-        console.log('Upload successful:', result); // Debug log
-        setFormData(prev => ({ ...prev, image: result.imageUrl }));
+        console.log("Upload successful:", result); // Debug log
+        setFormData((prev) => ({ ...prev, image: result.imageUrl }));
         setImagePreview(result.imageUrl);
-        setErrors(prev => ({ ...prev, image: null }));
+        setErrors((prev) => ({ ...prev, image: null }));
       } else {
-        console.log('Upload failed - no result'); // Debug log
-        setErrors(prev => ({ ...prev, image: uploadError || 'Failed to upload image' }));
+        console.log("Upload failed - no result"); // Debug log
+        setErrors((prev) => ({
+          ...prev,
+          image: uploadError || "Failed to upload image",
+        }));
       }
     } catch (error) {
-      console.error('Upload catch error:', error); // Debug log
-      setErrors(prev => ({ ...prev, image: uploadError || 'Failed to upload image' }));
+      console.error("Upload catch error:", error); // Debug log
+      setErrors((prev) => ({
+        ...prev,
+        image: uploadError || "Failed to upload image",
+      }));
     }
   };
 
   const removeImage = () => {
-    setFormData(prev => ({ ...prev, image: '' }));
+    setFormData((prev) => ({ ...prev, image: "" }));
     setImagePreview(null);
-    setErrors(prev => ({ ...prev, image: null }));
+    setErrors((prev) => ({ ...prev, image: null }));
   };
 
   const validateForm = () => {
     const newErrors = {};
-    
-    if (!formData.title.trim()) newErrors.title = 'Title is required';
-    if (!formData.description.trim()) newErrors.description = 'Introduction is required';
-    if (!formData.content.trim()) newErrors.content = 'Content is required';
-    if (!formData.category_id) newErrors.category_id = 'Category is required';
-    if (!formData.image) newErrors.image = 'Image is required';
-    
+
+    if (!formData.title.trim()) newErrors.title = "Title is required";
+    if (!formData.description.trim())
+      newErrors.description = "Introduction is required";
+    if (!formData.content.trim()) newErrors.content = "Content is required";
+    if (!formData.category_id) newErrors.category_id = "Category is required";
+    if (!formData.image) newErrors.image = "Image is required";
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (isDraft = false) => {
     if (!validateForm()) return;
-    
+
     setLoading(true);
-    
+
     try {
       const postData = {
         title: formData.title,
         description: formData.description,
         content: formData.content,
         category_id: parseInt(formData.category_id),
-        status_id: isDraft ? 2 : 1,
-        image: formData.image
+        status_id: isDraft ? 1 : 2, // FIX: id 1 = Draft, id 2 = Published (ตรงกับ database)
+        image: formData.image,
+        author_id: user?.id, // บันทึก author_id จาก logged-in user
       };
-      
+
+      // Debug: ตรวจสอบ status_id และ author_id ที่ส่งไป
+      console.log('🔍 Submit Debug:', {
+        isDraft,
+        status_id: postData.status_id,
+        author_id: postData.author_id,
+        author_name: user?.name,
+        expected: isDraft ? 'Draft (1)' : 'Published (2)',
+        postData
+      });
+
       const result = await createPost(postData);
-      
+
+      console.log('✅ Create post result:', result);
+
       if (result.success) {
-        alert(`Article ${isDraft ? 'saved as draft' : 'published'} successfully!`);
-        navigate('/admin/article-management');
+        alert(
+          `Article ${isDraft ? "saved as draft" : "published"} successfully!`
+        );
+        navigate("/admin/article-management");
       } else {
         alert(`Error: ${result.error}`);
       }
     } catch (error) {
-      alert('An unexpected error occurred');
-      console.error('Submit error:', error);
+      alert("An unexpected error occurred");
+      console.error("Submit error:", error);
     } finally {
       setLoading(false);
     }
@@ -141,20 +184,20 @@ const CreateArticle = () => {
       <div className="flex justify-between items-center pb-8 mb-4 mt-4 border-b">
         <h1 className="text-2xl font-bold">Create article</h1>
         <div className="flex gap-6">
-          <Button 
+          <Button
             className="px-10 py-6 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 transition-colors"
-            variant="outline" 
+            variant="outline"
             onClick={() => handleSubmit(true)}
             disabled={loading}
           >
-            {loading ? 'Saving...' : 'Save as draft'}
+            {loading ? "Saving..." : "Save as draft"}
           </Button>
-          <Button 
+          <Button
             className="px-10 py-6 bg-black text-white rounded-full"
             onClick={() => handleSubmit(false)}
             disabled={loading}
           >
-            {loading ? 'Publishing...' : 'Save and publish'}
+            {loading ? "Publishing..." : "Save and publish"}
           </Button>
         </div>
       </div>
@@ -166,7 +209,7 @@ const CreateArticle = () => {
             <label className="flex text-sm font-medium text-[#75716B]">
               Thumbnail image
             </label>
-            
+
             {/* Debug info */}
             {/* {process.env.NODE_ENV === 'development' && (
               <div className="text-xs text-gray-500 p-2 bg-gray-100 rounded">
@@ -179,9 +222,9 @@ const CreateArticle = () => {
             <div className="flex flex-row gap-6 items-end">
               {imagePreview ? (
                 <div className="relative w-full max-w-md">
-                  <img 
-                    src={imagePreview} 
-                    alt="Preview" 
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
                     className="w-full h-48 object-cover rounded-lg"
                   />
                   <button
@@ -194,10 +237,12 @@ const CreateArticle = () => {
               ) : (
                 <div className="flex flex-col items-center justify-center w-full max-w-md h-48 border-2 border-dashed rounded-lg">
                   <UploadCloud className="w-10 h-10 text-gray-400" />
-                  <p className="mt-2 text-sm text-gray-500">No image uploaded</p>
+                  <p className="mt-2 text-sm text-gray-500">
+                    No image uploaded
+                  </p>
                 </div>
               )}
-              
+
               <input
                 type="file"
                 accept="image/*"
@@ -205,14 +250,14 @@ const CreateArticle = () => {
                 className="hidden"
                 id="image-upload"
               />
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 className="px-8 py-5 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 transition-colors"
-                onClick={() => document.getElementById('image-upload').click()}
+                onClick={() => document.getElementById("image-upload").click()}
                 disabled={uploading}
               >
-                {uploading ? 'Uploading...' : 'Upload thumbnail image'}
+                {uploading ? "Uploading..." : "Upload thumbnail image"}
               </Button>
             </div>
             {errors.image && (
@@ -223,53 +268,69 @@ const CreateArticle = () => {
           {/* Form Fields */}
           <div className="space-y-6">
             <div>
-              <label htmlFor="category" className="flex py-2 text-sm font-medium text-[#75716B]">
+              <label
+                htmlFor="category"
+                className="flex py-2 text-sm font-medium text-[#75716B]"
+              >
                 Category
               </label>
-              <Select 
-                value={formData.category_id} 
-                onValueChange={(value) => handleInputChange('category_id', value)}
+              <Select
+                value={formData.category_id}
+                onValueChange={(value) =>
+                  handleInputChange("category_id", value)
+                }
               >
                 <SelectTrigger className="w-1/2">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {dbCategories.map((category) => (
-                    <SelectItem key={category.id} value={category.id.toString()}>
+                    <SelectItem
+                      key={category.id}
+                      value={category.id.toString()}
+                    >
                       {category.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {errors.category_id && (
-                <p className="text-sm text-red-500 mt-1">{errors.category_id}</p>
+                <p className="text-sm text-red-500 mt-1">
+                  {errors.category_id}
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="author" className="flex py-2 text-sm font-medium text-[#75716B] mb-1">
+              <label
+                htmlFor="author"
+                className="flex py-2 text-sm font-medium text-[#75716B] mb-1"
+              >
                 Author name
               </label>
-              <Input 
-                id="author" 
-                type="text" 
+              <Input
+                id="author"
+                type="text"
                 placeholder="Thompson P."
-                value={user?.name || ''}
+                value={user?.name || ""}
                 disabled={true}
                 className="w-full bg-[#EFEEEB] cursor-not-allowed"
               />
             </div>
 
             <div>
-              <label htmlFor="title" className="flex py-2 text-sm font-medium text-[#75716B] mb-1">
+              <label
+                htmlFor="title"
+                className="flex py-2 text-sm font-medium text-[#75716B] mb-1"
+              >
                 Title
               </label>
-              <Input 
-                id="title" 
-                type="text" 
+              <Input
+                id="title"
+                type="text"
                 placeholder="Article title"
                 value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
+                onChange={(e) => handleInputChange("title", e.target.value)}
                 className="w-full"
               />
               {errors.title && (
@@ -278,15 +339,20 @@ const CreateArticle = () => {
             </div>
 
             <div>
-              <label htmlFor="introduction" className="flex py-2 text-sm font-medium text-[#75716B] mb-1">
+              <label
+                htmlFor="introduction"
+                className="flex py-2 text-sm font-medium text-[#75716B] mb-1"
+              >
                 Introduction (max 120 letters)
               </label>
-              <Textarea 
-                id="introduction" 
+              <Textarea
+                id="introduction"
                 placeholder="Introduction"
                 rows={3}
                 value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
                 maxLength={120}
                 className="w-full"
               />
@@ -294,21 +360,23 @@ const CreateArticle = () => {
                 {formData.description.length}/120 characters
               </p>
               {errors.description && (
-                <p className="text-sm text-red-500 mt-1">{errors.description}</p>
+                <p className="text-sm text-red-500 mt-1">
+                  {errors.description}
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="content" className="flex py-2 text-sm font-medium text-[#75716B] mb-1">
-                Content
+              <label
+                htmlFor="content"
+                className="flex py-2 text-sm font-medium text-[#75716B] mb-1"
+              >
+                Content (Markdown supported)
               </label>
-              <Textarea 
-                id="content" 
-                placeholder="Content"
-                rows={12}
+              <MarkdownEditor
                 value={formData.content}
-                onChange={(e) => handleInputChange('content', e.target.value)}
-                className="w-full"
+                onChange={handleContentChange}
+                placeholder="Write your article content... You can drag & drop images or use markdown syntax like ![alt text](image-url)"
               />
               {errors.content && (
                 <p className="text-sm text-red-500 mt-1">{errors.content}</p>

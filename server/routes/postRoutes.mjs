@@ -120,15 +120,50 @@ postRouter.get("/:postId", async (req, res) => {
 // POST /posts - Create post
 postRouter.post("/", protectAdmin, validatePostData, async (req, res) => {
   try {
-    const { title, image, category_id, description, content, status_id } =
+    const { title, image, category_id, description, content, status_id, author_id } =
       req.body;
 
-    const post = await prisma.posts.create({
-      data: { title, image, category_id, description, content, status_id },
-      include: { categories: true, statuses: true },
+    // Debug: ตรวจสอบข้อมูลที่รับเข้ามา
+    console.log('📝 Creating post with data:', {
+      title,
+      category_id,
+      status_id,
+      author_id,
+      status_type: typeof status_id
     });
 
-    return res.status(201).json({ message: "Created post sucessfully" });
+    // ใช้ author_id จาก request body ถ้ามี ไม่งั้นใช้จาก token
+    const finalAuthorId = author_id || req.user?.id;
+
+    const post = await prisma.posts.create({
+      data: { 
+        title, 
+        image, 
+        category_id, 
+        description, 
+        content, 
+        status_id,
+        author_id: finalAuthorId
+      },
+      include: { categories: true, statuses: true, users: true },
+    });
+
+    // Debug: ตรวจสอบ post ที่สร้างแล้ว
+    console.log('✅ Post created:', {
+      id: post.id,
+      status_id: post.status_id,
+      status_name: post.statuses?.status,
+      author_id: post.author_id,
+      author_name: post.users?.name
+    });
+
+    return res.status(201).json({ 
+      message: "Created post sucessfully",
+      post: {
+        id: post.id,
+        status: post.statuses?.status
+      }
+    });
   } catch (err) {
     console.error("Create post error:", err);
     return res.status(500).json({
