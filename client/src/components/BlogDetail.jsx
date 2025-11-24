@@ -96,8 +96,8 @@ const BlogDetail = () => {
                 img: ({ node, ...props }) => (
                   <img
                     {...props}
-                    className="rounded-lg shadow-md my-6 w-full object-cover"
-                    style={{ maxHeight: '500px' }}
+                    className="rounded-lg my-6 max-w-full h-auto mx-auto object-contain" // EDIT: ปรับให้แสดงเต็มรูป จัดกึ่งกลาง และไม่ถูกครอป
+                    style={{ maxHeight: '1000px' }} // EDIT: เพิ่มความสูงสูงสุดเป็น 600px (หรือลบบรรทัดนี้ออกถ้าอยากให้แสดงความสูงตามจริงทั้งหมด)
                   />
                 ),
                 h1: ({ node, ...props }) => (
