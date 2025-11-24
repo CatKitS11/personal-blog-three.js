@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/authentication";
@@ -15,6 +15,7 @@ import {
 import { UploadCloud, X, ArrowLeft } from "lucide-react";
 import { useAdminPosts } from "../../../hooks/useAdminPosts";
 import { usePostImageUpload } from "../../../hooks/usePostImageUpload";
+import MarkdownEditor from "@/components/MarkdownEditor";
 import axios from "axios";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -38,6 +39,7 @@ const EditArticle = () => {
     category_id: "",
     status_id: 2,
     image: "",
+    author_name: "",
   });
 
   const [categories, setCategories] = useState([]);
@@ -60,14 +62,13 @@ const EditArticle = () => {
 
         const post = response.data;
 
-        // Need to get category_id from category name
         const categoriesResponse = await axios.get(`${apiBaseUrl}/categories`);
         const cats = categoriesResponse.data.categories || [];
         setCategories(cats);
 
         const category = cats.find((c) => c.name === post.category);
         const statusId =
-          post.status === "Published" ? 1 : post.status === "Draft" ? 2 : 3;
+          post.status === "Published" ? 2 : 1;
 
         setFormData({
           title: post.title || "",
@@ -76,6 +77,7 @@ const EditArticle = () => {
           category_id: category?.id.toString() || "",
           status_id: statusId,
           image: post.image || "",
+          author_name: post.author?.name || "",
         });
 
         setImagePreview(post.image);
@@ -104,6 +106,10 @@ const EditArticle = () => {
       }));
     }
   };
+
+  const handleContentChange = useCallback((value) => {
+    handleInputChange("content", value);
+  }, []);
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -176,6 +182,7 @@ const EditArticle = () => {
         category_id: parseInt(formData.category_id),
         status_id: isDraft ? 1 : 2,
         image: formData.image,
+        // author_id: user?.id,
       };
 
       const result = await updatePost(postId, postData);
@@ -434,7 +441,7 @@ const EditArticle = () => {
                 id="author"
                 type="text"
                 placeholder="Author name"
-                value={user?.name || ""}
+                value={formData.author_name || user?.name || ""}
                 disabled={true}
                 className="w-1/2 bg-[#EFEEEB] cursor-not-allowed"
               />
@@ -493,15 +500,12 @@ const EditArticle = () => {
                 htmlFor="content"
                 className="flex py-2 text-sm font-medium text-[#75716B] mb-1"
               >
-                Content
+                Content (Markdown supported)
               </label>
-              <Textarea
-                id="content"
-                placeholder="Content"
-                rows={12}
+              <MarkdownEditor
                 value={formData.content}
-                onChange={(e) => handleInputChange("content", e.target.value)}
-                className="w-full"
+                onChange={handleContentChange}
+                placeholder="Write your article content... You can drag & drop images or use markdown syntax like ![alt text](image-url)"
               />
               {errors.content && (
                 <p className="text-sm text-red-500 mt-1">{errors.content}</p>
