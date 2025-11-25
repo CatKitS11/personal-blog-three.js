@@ -190,7 +190,7 @@ const AdminProfile = () => {
           <div className="space-y-6">
             {/* Name Field */}
             <div>
-              <label className="flex pl-0.5 text-sm font-medium text-gray-700 mb-2">
+              <label className="flex pl-0.5 text-sm font-medium text-[#75716B] mb-2">
                 Name
               </label>
               <Input
@@ -204,7 +204,7 @@ const AdminProfile = () => {
 
             {/* Username Field */}
             <div>
-              <label className="flex pl-0.5 text-sm font-medium text-gray-700 mb-2">
+              <label className="flex pl-0.5 text-sm font-medium text-[#75716B] mb-2">
                 Username
               </label>
               <Input
@@ -218,19 +218,19 @@ const AdminProfile = () => {
 
             {/* Email Field (Read-only) */}
             <div>
-              <label className="flex pl-0.5 text-sm font-medium text-gray-500 mb-2">
+              <label className="flex pl-0.5 text-sm font-medium text-[#75716B] mb-2">
                 Email
               </label>
-              <div className="flex px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-500 text-sm">
+              <div className="flex px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-lg text-gray-500 text-sm">
                 {profileData.email}
               </div>
-              <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
+              <p className="pl-0.5 pt-2 text-left text-xs text-red-400 mt-1">Email cannot be changed</p>
             </div>
 
             {/* Bio Field */}
             <div>
-              <label className="flex pl-0.5 text-sm font-medium text-gray-700 mb-2">
-                Bio <span className="text-gray-400 font-normal">(max 120 letters)</span>
+              <label className="flex pl-0.5 text-sm font-medium text-[#75716B] mb-2">
+                Bio <span className="pl-1 text-gray-400 font-normal">(max 120 letters)</span>
               </label>
               <textarea
                 name="bio"
@@ -244,7 +244,7 @@ const AdminProfile = () => {
 When I'm not writing, I spends time volunteering at my local animal shelter, helping cats find loving homes."
               />
               <div className="flex justify-between items-center mt-2">
-                <p className="text-xs text-gray-500">Tell us about yourself</p>
+                <p className="pl-0.75 text-xs text-gray-500">Tell us about yourself</p>
                 <div className="text-xs font-medium text-gray-600">
                   <span className={profileData.bio.length >= 120 ? 'text-red-600' : ''}>{profileData.bio.length}</span>
                   <span className="text-gray-400">/120</span>

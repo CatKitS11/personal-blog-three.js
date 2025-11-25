@@ -118,7 +118,7 @@ const CategoryManagement = () => {
               <tbody>
                 {filtered.map((cat, idx) => (
                   <tr key={cat.id} className={`transition-colors hover:bg-gray-100 ${idx % 2 === 0 ? "bg-white" : "bg-[#EFEEEB]"}`}>
-                    <td className="py-4 px-4 text-[#333333]">{cat.name}</td>
+                    <td className="py-4 px-4 text-left text-[#333333]">{cat.name}</td>
                     <td className="py-4 px-4">
                       <div className="flex justify-end items-center gap-4">
                         <Link to={`/admin/category-management/edit/${cat.id}`}>
