@@ -85,7 +85,7 @@ const ArticleSection = () => {
 
   return (
     <div className="px-0 w-full">
-      <h1 className="text-2xl font-bold text-left font-poppins">
+      <h1 className="text-2xl my-4 font-bold text-left font-poppins">
         Latest articles
       </h1>
       <div className="flex max-xs:flex-col items-center justify-between bg-stone-100 rounded-lg py-3 px-5">
@@ -112,7 +112,7 @@ const ArticleSection = () => {
         <div className="flex items-center justify-center max-xs:w-full">
           <Popover open={openSearch} onOpenChange={setOpenSearch}>
             <PopoverTrigger asChild>
-              <div className="relative w-72 max-xs:w-full">
+              <div className="relative w-72 mr-2 max-xs:w-full">
                 <input
                   className="w-full bg-white h-10 rounded-md px-3 border"
                   placeholder="Search"
@@ -133,7 +133,7 @@ const ArticleSection = () => {
                 />
                 <button
                   type="button"
-                  className="absolute right-1 top-1.5 px-2 py-1 border rounded-md"
+                  className="absolute right-1 top-1.5 px-2 py-1 mr-3 border rounded-md"
                 >
                   <Search className="w-4 h-4" />
                 </button>

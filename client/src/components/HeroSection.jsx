@@ -3,7 +3,7 @@ import heroImage from "../assets/P_Image.jpg";
 
 const HeroSection = () => {
   return (
-    <div className="mx-auto max-w-7xl my-36 px-6 py-8 bg-white">
+    <div className="mx-auto max-w-7xl my-36 px-6 py-8 bg-stone-100">
       <div className="grid grid-cols-1 lg:grid-cols-3 items-center gap-8">
         {/* Left: Headline */}
         <div className="order-2 lg:order-1 max-w-md mx-auto lg:mx-0 text-center lg:text-left">

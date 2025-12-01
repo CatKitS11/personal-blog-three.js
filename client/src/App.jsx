@@ -38,7 +38,7 @@ function App() {
   const hideNavbar = isAdminRoute;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-stone-100">
       {!hideNavbar && <NavBar />}
 
       <Routes>
