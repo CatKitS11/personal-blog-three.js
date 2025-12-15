@@ -160,7 +160,7 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-stone-100">
       <main className="px-4 py-8"> {/* EDIT: เพิ่ม py-8 */}
         <div className="max-w-3xl mx-auto">
           {/* Alert Component - แสดงด้านบนสุด */} {/* EDIT */}

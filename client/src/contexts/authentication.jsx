@@ -31,15 +31,13 @@ function AuthProvider(props) {
 
     try {
       setState((prevState) => ({ ...prevState, getUserLoading: true }));
-      const response = await axios.get(
-        `${API_BASE_URL}/auth/get-user`
-      );
-      
+      const response = await axios.get(`${API_BASE_URL}/auth/get-user`);
+
       // เก็บ role ใน localStorage
       if (response.data?.role) {
-        localStorage.setItem('userRole', response.data.role);
+        localStorage.setItem("userRole", response.data.role);
       }
-      
+
       setState((prevState) => ({
         ...prevState,
         user: response.data,
@@ -63,37 +61,29 @@ function AuthProvider(props) {
   const login = async (data) => {
     try {
       setState((prevState) => ({ ...prevState, loading: true, error: null }));
-      const response = await axios.post(
-        `${API_BASE_URL}/auth/login`,
-        data
-      );
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, data);
       const token = response.data.access_token;
       localStorage.setItem("token", token);
 
       // ดึงข้อมูลผู้ใช้เพื่อเช็ค role
       const userResponse = await axios.get(`${API_BASE_URL}/auth/get-user`);
       const userRole = userResponse.data?.role;
-      
+
       // เก็บ role ใน localStorage
       if (userRole) {
-        localStorage.setItem('userRole', userRole);
+        localStorage.setItem("userRole", userRole);
       }
-      
+
       // อัปเดต state
-      setState((prevState) => ({ 
-        ...prevState, 
-        loading: false, 
+      setState((prevState) => ({
+        ...prevState,
+        loading: false,
         error: null,
-        user: userResponse.data
+        user: userResponse.data,
       }));
-      
-      // เช็ค role และ redirect ตาม role
-      if (userRole === 'admin') {
-        navigate("/admin");
-      } else {
-        navigate("/");
-      }
-      
+
+      // ✅ ส่งผลลัพธ์กลับไปให้ Login.jsx ตัดสินใจเอง
+      return { user: userResponse.data, role: userRole };
     } catch (error) {
       setState((prevState) => ({
         ...prevState,
@@ -108,10 +98,7 @@ function AuthProvider(props) {
   const register = async (data) => {
     try {
       setState((prevState) => ({ ...prevState, loading: true, error: null }));
-      await axios.post(
-        `${API_BASE_URL}/auth/register`,
-        data
-      );
+      await axios.post(`${API_BASE_URL}/auth/register`, data);
       setState((prevState) => ({ ...prevState, loading: false, error: null }));
       navigate("/sign-up/success");
     } catch (error) {
@@ -137,18 +124,21 @@ function AuthProvider(props) {
   // เช็คว่า username หรือ email ซ้ำหรือไม่
   const checkAvailability = async (field, value) => {
     if (!value.trim()) return { available: true };
-    
+
     try {
-      setState(prev => ({ ...prev, checkingAvailability: true }));
+      setState((prev) => ({ ...prev, checkingAvailability: true }));
       const response = await axios.post(
         `${API_BASE_URL}/auth/check-availability`,
         { field, value: value.trim() }
       );
-      setState(prev => ({ ...prev, checkingAvailability: false }));
+      setState((prev) => ({ ...prev, checkingAvailability: false }));
       return response.data;
     } catch (error) {
-      setState(prev => ({ ...prev, checkingAvailability: false }));
-      return { available: false, error: error.response?.data?.error || "Check failed" };
+      setState((prev) => ({ ...prev, checkingAvailability: false }));
+      return {
+        available: false,
+        error: error.response?.data?.error || "Check failed",
+      };
     }
   };
 

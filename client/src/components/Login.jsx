@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { Alert } from "./ui/alert";
 import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../contexts/authentication";
 
@@ -13,9 +14,24 @@ const Login = () => {
     password: "",
   });
   const [errors, setErrors] = useState({});
+  const [alert, setAlert] = useState({ show: false, type: "error", message: "",content:"", }); // EDIT: เพิ่ม alert state
+
+  // Auto-hide alert สำหรับ success // EDIT: เพิ่ม useEffect
+  useEffect(() => {
+    if (alert.show && alert.type === "success") {
+      const timer = setTimeout(() => {
+        setAlert({ ...alert, show: false });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert.show, alert.type]);
 
   const onChange = (e) => {
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+    setErrors((prev) => ({ ...prev, [e.target.name]: "" })); // EDIT: clear field error
+    if (alert.show) { // EDIT: ซ่อน alert เมื่อเริ่มพิมพ์
+      setAlert({ ...alert, show: false });
+    }
   };
 
   const validate = () => {
@@ -29,21 +45,63 @@ const Login = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate()) {
+      setAlert({ // EDIT: แสดง alert สำหรับ validation error
+        show: true,
+        type: "error",
+        message: "Please fill in all required fields correctly."
+      });
+      return;
+    }
+
+    // ซ่อน alert เดิม // EDIT
+    setAlert({ show: false, type: "error", message: "" });
 
     try {
       const result = await login(form);
       if (result?.error) {
-        setErrors({ submit: result.error });
+        setAlert({ // EDIT: ใช้ Alert แทน setErrors
+          show: true,
+          type: "error",
+          message: result.error,
+          content:"Please try another password or email",
+        });
+        setErrors({ submit: result.error }); // เก็บไว้สำหรับ backward compatibility
+      } else {
+        const role = result?.role || "";
+        console.log(role);
+        setAlert({
+          show: true,
+          type: "success",
+          message: "Login successful!",
+          content: "Redirecting to your dashboard..."
+        });
+        setTimeout(() => navigate(role === "admin" ? "/admin" : "/"), 2000);
       }
     } catch (error) {
       console.error("Login error:", error);
-      setErrors({ submit: "An unexpected error occurred" });
+      setAlert({ // EDIT: ใช้ Alert แทน setErrors
+        show: true,
+        type: "error",
+        message: error.response?.data?.error || "An unexpected error occurred"
+      });
+      setErrors({ submit: "An unexpected error occurred" }); // เก็บไว้สำหรับ backward compatibility
     }
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="h-screen w-full bg-stone-100">
+      {/* Alert Component */} {/* EDIT: เพิ่ม Alert */}
+      {alert.show && (
+        <Alert 
+          type={alert.type} 
+          message={alert.message} 
+          content={alert.content}
+          onClose={() => setAlert({ ...alert, show: false })} 
+          variant="fixed" // หรือ "inline" ถ้าต้องการแสดงในหน้า
+        />
+      )}
+
       <div className="bg-[#EFEEEB] flex items-center justify-center py-[60px] px-[120px] mt-[140px] mx-[323px] rounded-xl sm:px-6 lg:px-8">
         <div className="max-w-sm w-full space-y-6">
           <div className="text-center">
@@ -87,9 +145,10 @@ const Login = () => {
               )}
             </div>
 
-            {errors.submit && (
+            {/* ลบ errors.submit ออกเพราะใช้ Alert แทนแล้ว */} {/* EDIT: comment out หรือลบออก */}
+            {/* {errors.submit && (
               <p className="text-sm text-red-500">{errors.submit}</p>
-            )}
+            )} */}
 
             <Button
               type="submit"

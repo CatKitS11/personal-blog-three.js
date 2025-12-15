@@ -15,12 +15,13 @@ function AuthenticationRoute({ isLoading, isAuthenticated, children }) {
 
   if (isAuthenticated) {
     // EDIT: เช็ค role และ redirect ตาม role
-    const userRole = localStorage.getItem('userRole'); // เก็บ role ใน localStorage
-    if (userRole === 'admin') {
-      return <Navigate to="/admin" replace />;
-    } else {
-      return <Navigate to="/" replace />;
-    }
+    // const userRole = localStorage.getItem('userRole'); // เก็บ role ใน localStorage
+    // setTimeout(() => console.log(userRole), 3000);
+    // if (userRole === 'admin') {
+    //   return <Navigate to="/admin" replace />;
+    // } else {
+    //   return <Navigate to="/" replace />;
+    // }
   }
 
   return children;
