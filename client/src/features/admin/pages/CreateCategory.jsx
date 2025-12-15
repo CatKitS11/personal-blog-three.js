@@ -4,29 +4,63 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
 import { useAdminCategories } from "@/hooks/useAdminCategores";
+import { Alert } from "@/components/ui/alert";
 
 const CreateCategory = () => {
   const navigate = useNavigate();
   const { createCategory } = useAdminCategories();
   const [categoryName, setCategoryName] = useState("");
   const [error, setError] = useState("");
+  const [alert, setAlert] = useState({
+    show: false,
+    type: "info",
+    message: "",
+    content: "",
+  });
 
   const handleSave = async () => {
     if (!categoryName.trim()) {
       setError("Category name is required");
+      setAlert({
+        show: true,
+        type: "error",
+        message: "Validation error",
+        content: "Category name is required.",
+      });
       return;
     }
 
     const res = await createCategory(categoryName.trim());
     if (res.success) {
-      navigate("/admin/category-management");
+      setAlert({
+        show: true,
+        type: "success",
+        message: "Category created",
+        content: "Redirecting to category management...",
+      });
+      setTimeout(() => navigate("/admin/category-management"), 1500);
     } else {
       setError(res.error || "Failed to create category");
+      setAlert({
+        show: true,
+        type: "error",
+        message: "Failed to create category",
+        content: res.error || "Please try again.",
+      });
     }
   };
 
   return (
     <div>
+      {alert.show && (
+        <Alert
+          type={alert.type}
+          message={alert.message}
+          content={alert.content}
+          onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
+          variant="fixed"
+        />
+      )}
       <div className="flex justify-between items-center pb-8 mb-4 mt-4 border-b">
         <div className="flex items-center gap-4">
           <button
@@ -58,6 +92,7 @@ const CreateCategory = () => {
               onChange={(e) => {
                 setCategoryName(e.target.value);
                 setError("");
+                if (alert.show) setAlert((prev) => ({ ...prev, show: false })); // EDIT: ซ่อน alert เมื่อเริ่มพิมพ์
               }}
               onKeyPress={(e) => e.key === "Enter" && handleSave()}
               className="w-full"

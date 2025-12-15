@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { useAdminCategories } from "@/hooks/useAdminCategores";
 import axios from "axios";
+import { Alert } from "@/components/ui/alert";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -17,6 +18,12 @@ const EditCategory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleteModal, setDeleteModal] = useState(false);
+  const [alert, setAlert] = useState({
+    show: false,
+    type: "info",
+    message: "",
+    content: "",
+  });
 
   useEffect(() => {
     const fetchCategory = async () => {
@@ -29,12 +36,22 @@ const EditCategory = () => {
           setCategoryName(category.name);
           setOriginalName(category.name);
         } else {
-          alert("Category not found");
-          navigate("/admin/category-management");
+          setAlert({
+            show: true,
+            type: "error",
+            message: "Category not found",
+            content: "Redirecting to category management...",
+          });
+          setTimeout(() => navigate("/admin/category-management"), 1500);
         }
       } catch (err) {
         console.error("Error fetching category:", err);
-        alert("Failed to load category");
+        setAlert({
+          show: true,
+          type: "error",
+          message: "Failed to load category",
+          content: "Please try again later.",
+        });
         navigate("/admin/category-management");
       } finally {
         setLoading(false);
@@ -44,21 +61,55 @@ const EditCategory = () => {
     fetchCategory();
   }, [categoryId, navigate]);
 
+  useEffect(() => {
+    if (alert.show && (alert.type === "success" || alert.type === "warning")) {
+      const timer = setTimeout(
+        () => setAlert((prev) => ({ ...prev, show: false })),
+        3000
+      );
+      return () => clearTimeout(timer);
+    }
+  }, [alert.show, alert.type]);
+
   const handleSave = async () => {
     if (!categoryName.trim()) {
       setError("Category name is required");
+      setAlert({
+        show: true,
+        type: "error",
+        message: "Validation error",
+        content: "Category name is required.",
+      });
       return;
     }
 
     if (categoryName.trim() === originalName) {
+      setAlert({
+        show: true,
+        type: "warning",
+        message: "No changes detected",
+        content: "The category name is unchanged.",
+      });
       navigate("/admin/category-management");
       return;
     }
 
     const res = await updateCategory(parseInt(categoryId), categoryName.trim());
     if (res.success) {
+      setAlert({
+        show: true,
+        type: "success",
+        message: "Category updated",
+        content: "Redirecting to category management...",
+      });
       navigate("/admin/category-management");
     } else {
+      setAlert({
+        show: true,
+        type: "error",
+        message: "Failed to update category",
+        content: res.error || "Please try again.",
+      });
       setError(res.error || "Failed to update category");
     }
   };
@@ -70,10 +121,20 @@ const EditCategory = () => {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-      alert("Category deleted successfully");
-      navigate("/admin/category-management");
+      setAlert({
+        show: true,
+        type: "success",
+        message: "Category deleted",
+        content: "Redirecting to category management...",
+      });
+      setTimeout(() => navigate("/admin/category-management"), 1500);
     } catch (err) {
-      alert("Failed to delete category");
+      setAlert({
+        show: true,
+        type: "error",
+        message: "Failed to delete category",
+        content: "Please try again.",
+      });
       console.error("Delete error:", err);
     }
   };
@@ -88,6 +149,16 @@ const EditCategory = () => {
 
   return (
     <div>
+      {alert.show && (
+        <Alert
+          type={alert.type}
+          message={alert.message}
+          content={alert.content}
+          onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
+          variant="fixed"
+        />
+      )}
+
       {deleteModal && (
         <>
           <div

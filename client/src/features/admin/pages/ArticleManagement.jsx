@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react"; // EDIT: add useEffect for auto-hide success alert
 import { Search, Edit, Trash2, Plus, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAdminPosts } from "@/hooks/useAdminPosts";
+import { Alert } from "@/components/ui/alert"; // EDIT: use shared Alert like Login page
 
 const ArticleManagement = () => {
   const { posts, loading, error, deletePost } = useAdminPosts();
@@ -13,6 +14,19 @@ const ArticleManagement = () => {
     postId: null,
     postTitle: "",
   });
+  const [alert, setAlert] = useState({ // EDIT: unified alert state
+    show: false,
+    type: "info",
+    message: "",
+    content: "",
+  });
+
+  useEffect(() => { // EDIT: auto-hide success alerts
+    if (alert.show && alert.type === "success") {
+      const t = setTimeout(() => setAlert((p) => ({ ...p, show: false })), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [alert.show, alert.type]);
 
   const handleDelete = async (postId) => {
     const post = posts.find((p) => p.id === postId);
@@ -23,7 +37,21 @@ const ArticleManagement = () => {
     if (!deleteModal.postId) return;
     const result = await deletePost(deleteModal.postId);
     setDeleteModal({ open: false, postId: null, postTitle: "" });
-    if (!result.success) alert(result.error);
+    if (result.success) { // EDIT: show success via Alert
+      setAlert({
+        show: true,
+        type: "success",
+        message: "Article deleted",
+        content: "The article has been deleted successfully.",
+      });
+      return;
+    }
+    setAlert({ // EDIT: show error via Alert
+      show: true,
+      type: "error",
+      message: "Failed to delete article",
+      content: result.error || "Please try again.",
+    });
   };
 
   const cancelDelete = () => {
@@ -41,6 +69,15 @@ const ArticleManagement = () => {
 
   return (
     <div>
+      {alert.show && ( // EDIT: render shared Alert
+        <Alert
+          type={alert.type}
+          message={alert.message}
+          content={alert.content}
+          onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
+          variant="fixed"
+        />
+      )}
       {deleteModal.open && (
         <>
           <div

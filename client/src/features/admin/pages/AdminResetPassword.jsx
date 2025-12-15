@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react"; // EDIT: add useEffect for auto-hide success alert
 import { useAuth } from "@/contexts/authentication";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import axios from "axios";
+import { Alert } from "@/components/ui/alert"; // EDIT: use shared Alert like Login page
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -16,7 +17,19 @@ const AdminResetPassword = () => {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState({});
-  const [successMessage, setSuccessMessage] = useState("");
+  const [alert, setAlert] = useState({ // EDIT: unified alert state
+    show: false,
+    type: "info",
+    message: "",
+    content: "",
+  });
+
+  useEffect(() => { // EDIT: auto-hide success alerts
+    if (alert.show && alert.type === "success") {
+      const t = setTimeout(() => setAlert((p) => ({ ...p, show: false })), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [alert.show, alert.type]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -30,7 +43,7 @@ const AdminResetPassword = () => {
         [field]: null,
       }));
     }
-    setSuccessMessage("");
+    if (alert.show) setAlert((p) => ({ ...p, show: false })); // EDIT: hide alert on edit
   };
 
   const validateForm = () => {
@@ -57,10 +70,18 @@ const AdminResetPassword = () => {
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) { // EDIT: surface validation via Alert
+      setAlert({
+        show: true,
+        type: "error",
+        message: "Please check your input",
+        content: "Fix the highlighted fields and try again.",
+      });
+      return;
+    }
 
     setLoading(true);
-    setSuccessMessage("");
+    setAlert({ show: false, type: "info", message: "", content: "" }); // EDIT: reset previous alert
 
     try {
       const response = await axios.put(
@@ -77,7 +98,12 @@ const AdminResetPassword = () => {
       );
 
       if (response.data) {
-        setSuccessMessage("Password reset successfully!");
+        setAlert({ // EDIT: success alert instead of inline banner
+          show: true,
+          type: "success",
+          message: "Password updated",
+          content: "Your password has been reset successfully.",
+        });
         setFormData({
           currentPassword: "",
           newPassword: "",
@@ -87,6 +113,12 @@ const AdminResetPassword = () => {
     } catch (error) {
       const errorMsg = error.response?.data?.error || "Failed to reset password";
       setErrors({ submit: errorMsg });
+      setAlert({ // EDIT: error alert
+        show: true,
+        type: "error",
+        message: "Failed to reset password",
+        content: errorMsg,
+      });
     } finally {
       setLoading(false);
     }
@@ -94,6 +126,15 @@ const AdminResetPassword = () => {
 
   return (
     <div>
+      {alert.show && ( // EDIT: render shared Alert
+        <Alert
+          type={alert.type}
+          message={alert.message}
+          content={alert.content}
+          onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
+          variant="fixed"
+        />
+      )}
       <div className="flex justify-between items-center pb-8 mb-4 mt-4 border-b">
         <h1 className="text-2xl font-bold">Reset password</h1>
         <Button
@@ -106,17 +147,7 @@ const AdminResetPassword = () => {
       </div>
 
       <div className="bg-white p-8 rounded-lg shadow-sm max-w-2xl">
-        {successMessage && (
-          <div className="mb-6 p-4 bg-green-50 text-green-700 border border-green-200 rounded-lg">
-            {successMessage}
-          </div>
-        )}
-
-        {errors.submit && (
-          <div className="mb-6 p-4 bg-red-50 text-red-700 border border-red-200 rounded-lg">
-            {errors.submit}
-          </div>
-        )}
+        {/* success/errors are now surfaced via shared Alert for consistent UX */} {/* EDIT */}
 
         <div className="space-y-6">
           <div>

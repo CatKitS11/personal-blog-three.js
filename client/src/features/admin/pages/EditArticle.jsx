@@ -16,6 +16,7 @@ import { useAdminPosts } from "@/hooks/useAdminPosts";
 import { usePostImageUpload } from "@/hooks/usePostImageUpload";
 import MarkdownEditor from "@/features/blog/MarkdownEditor";
 import axios from "axios";
+import { Alert } from "@/components/ui/alert"; // EDIT: use shared Alert like Login page
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -43,6 +44,19 @@ const EditArticle = () => {
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ open: false });
+  const [alert, setAlert] = useState({ // EDIT: unified alert state
+    show: false,
+    type: "info",
+    message: "",
+    content: "",
+  });
+
+  useEffect(() => { // EDIT: auto-hide success alerts
+    if (alert.show && alert.type === "success") {
+      const t = setTimeout(() => setAlert((p) => ({ ...p, show: false })), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [alert.show, alert.type]);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -76,8 +90,13 @@ const EditArticle = () => {
         setImagePreview(post.image);
       } catch (error) {
         console.error("Error fetching post:", error);
-        alert("Failed to load article");
-        navigate("/admin/article-management");
+        setAlert({ // EDIT: replace window.alert with shared Alert
+          show: true,
+          type: "error",
+          message: "Failed to load article",
+          content: "Redirecting to article management...",
+        });
+        setTimeout(() => navigate("/admin/article-management"), 1500); // EDIT
       } finally {
         setFetchingPost(false);
       }
@@ -91,6 +110,7 @@ const EditArticle = () => {
       ...prev,
       [field]: value,
     }));
+    if (alert.show) setAlert((p) => ({ ...p, show: false })); // EDIT: hide alert on edit
 
     if (errors[field]) {
       setErrors((prev) => ({
@@ -110,6 +130,12 @@ const EditArticle = () => {
 
     if (!file.type.startsWith("image/")) {
       setErrors((prev) => ({ ...prev, image: "Please select an image file" }));
+      setAlert({ // EDIT
+        show: true,
+        type: "error",
+        message: "Invalid file",
+        content: "Please select an image file.",
+      });
       return;
     }
 
@@ -118,6 +144,12 @@ const EditArticle = () => {
         ...prev,
         image: "Image size must be less than 5MB",
       }));
+      setAlert({ // EDIT
+        show: true,
+        type: "error",
+        message: "Image too large",
+        content: "Image size must be less than 5MB.",
+      });
       return;
     }
 
@@ -128,17 +160,35 @@ const EditArticle = () => {
         setFormData((prev) => ({ ...prev, image: result.imageUrl }));
         setImagePreview(result.imageUrl);
         setErrors((prev) => ({ ...prev, image: null }));
+        setAlert({ // EDIT
+          show: true,
+          type: "success",
+          message: "Image uploaded",
+          content: "Thumbnail image uploaded successfully.",
+        });
       } else {
         setErrors((prev) => ({
           ...prev,
           image: uploadError || "Failed to upload image",
         }));
+        setAlert({ // EDIT
+          show: true,
+          type: "error",
+          message: "Upload failed",
+          content: uploadError || "Failed to upload image.",
+        });
       }
     } catch (error) {
       setErrors((prev) => ({
         ...prev,
         image: uploadError || "Failed to upload image",
       }));
+      setAlert({ // EDIT
+        show: true,
+        type: "error",
+        message: "Upload failed",
+        content: uploadError || "Failed to upload image.",
+      });
     }
   };
 
@@ -163,7 +213,15 @@ const EditArticle = () => {
   };
 
   const handleSubmit = async (isDraft = false) => {
-    if (!validateForm()) return;
+    if (!validateForm()) { // EDIT: surface validation via Alert
+      setAlert({
+        show: true,
+        type: "error",
+        message: "Please check your input",
+        content: "Fix the highlighted fields and try again.",
+      });
+      return;
+    }
 
     setLoading(true);
 
@@ -180,16 +238,29 @@ const EditArticle = () => {
       const result = await updatePost(postId, postData);
 
       if (result.success) {
-        alert(
-          `Article ${isDraft ? "saved as draft" : "updated and published"} successfully!`
-        );
-        navigate("/admin/article-management");
+        setAlert({ // EDIT: success alert instead of window.alert
+          show: true,
+          type: "success",
+          message: isDraft ? "Draft saved" : "Article updated",
+          content: "Redirecting to article management...",
+        });
+        setTimeout(() => navigate("/admin/article-management"), 1500); // EDIT
       } else {
-        alert(`Error: ${result.error}`);
+        setAlert({ // EDIT: error alert
+          show: true,
+          type: "error",
+          message: "Failed to save article",
+          content: result.error || "Please try again.",
+        });
       }
     } catch (error) {
-      alert("An unexpected error occurred");
       console.error("Submit error:", error);
+      setAlert({ // EDIT
+        show: true,
+        type: "error",
+        message: "Unexpected error",
+        content: "An unexpected error occurred.",
+      });
     } finally {
       setLoading(false);
     }
@@ -208,12 +279,22 @@ const EditArticle = () => {
       });
 
       setDeleteModal({ open: false });
-      alert("Article deleted successfully!");
-      navigate("/admin/article-management");
+      setAlert({ // EDIT
+        show: true,
+        type: "success",
+        message: "Article deleted",
+        content: "Redirecting to article management...",
+      });
+      setTimeout(() => navigate("/admin/article-management"), 1500); // EDIT
     } catch (error) {
       setDeleteModal({ open: false });
-      alert("Failed to delete article");
       console.error("Delete error:", error);
+      setAlert({ // EDIT
+        show: true,
+        type: "error",
+        message: "Failed to delete article",
+        content: "Please try again.",
+      });
     }
   };
 
@@ -231,6 +312,15 @@ const EditArticle = () => {
 
   return (
     <div>
+      {alert.show && ( // EDIT: render shared Alert
+        <Alert
+          type={alert.type}
+          message={alert.message}
+          content={alert.content}
+          onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
+          variant="fixed"
+        />
+      )}
       {deleteModal.open && (
         <>
           <div

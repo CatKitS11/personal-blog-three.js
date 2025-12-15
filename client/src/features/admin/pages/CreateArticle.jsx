@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react"; // EDIT: add useEffect for auto-hide success alert
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/authentication";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useAdminPosts } from "@/hooks/useAdminPosts";
 import { usePostImageUpload } from "@/hooks/usePostImageUpload";
 import MarkdownEditor from "@/features/blog/MarkdownEditor";
+import { Alert } from "@/components/ui/alert"; // EDIT: use shared Alert like Login page
 
 const CreateArticle = () => {
   const navigate = useNavigate();
@@ -38,12 +39,26 @@ const CreateArticle = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState(null);
+  const [alert, setAlert] = useState({ // EDIT: unified alert state
+    show: false,
+    type: "info",
+    message: "",
+    content: "",
+  });
+
+  useEffect(() => { // EDIT: auto-hide success alerts
+    if (alert.show && alert.type === "success") {
+      const t = setTimeout(() => setAlert((p) => ({ ...p, show: false })), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [alert.show, alert.type]);
 
   const handleInputChange = useCallback((field, value) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+    if (alert.show) setAlert((p) => ({ ...p, show: false })); // EDIT: hide alert on edit
 
     setErrors((prev) => {
       if (prev[field]) {
@@ -68,6 +83,12 @@ const CreateArticle = () => {
 
     if (!file.type.startsWith("image/")) {
       setErrors((prev) => ({ ...prev, image: "Please select an image file" }));
+      setAlert({ // EDIT: surface validation via Alert
+        show: true,
+        type: "error",
+        message: "Invalid file",
+        content: "Please select an image file.",
+      });
       return;
     }
 
@@ -76,6 +97,12 @@ const CreateArticle = () => {
         ...prev,
         image: "Image size must be less than 5MB",
       }));
+      setAlert({ // EDIT
+        show: true,
+        type: "error",
+        message: "Image too large",
+        content: "Image size must be less than 5MB.",
+      });
       return;
     }
 
@@ -86,11 +113,23 @@ const CreateArticle = () => {
         setFormData((prev) => ({ ...prev, image: result.imageUrl }));
         setImagePreview(result.imageUrl);
         setErrors((prev) => ({ ...prev, image: null }));
+        setAlert({ // EDIT: upload success feedback
+          show: true,
+          type: "success",
+          message: "Image uploaded",
+          content: "Thumbnail image uploaded successfully.",
+        });
       } else {
         setErrors((prev) => ({
           ...prev,
           image: uploadError || "Failed to upload image",
         }));
+        setAlert({ // EDIT
+          show: true,
+          type: "error",
+          message: "Upload failed",
+          content: uploadError || "Failed to upload image.",
+        });
       }
     } catch (error) {
       console.error("Upload error:", error);
@@ -98,6 +137,12 @@ const CreateArticle = () => {
         ...prev,
         image: uploadError || "Failed to upload image",
       }));
+      setAlert({ // EDIT
+        show: true,
+        type: "error",
+        message: "Upload failed",
+        content: uploadError || "Failed to upload image.",
+      });
     }
   };
 
@@ -120,7 +165,15 @@ const CreateArticle = () => {
   };
 
   const handleSubmit = async (isDraft = false) => {
-    if (!validateForm()) return;
+    if (!validateForm()) { // EDIT: surface validation via Alert
+      setAlert({
+        show: true,
+        type: "error",
+        message: "Please check your input",
+        content: "Fix the highlighted fields and try again.",
+      });
+      return;
+    }
     setLoading(true);
     try {
       const postData = {
@@ -136,16 +189,29 @@ const CreateArticle = () => {
       const result = await createPost(postData);
 
       if (result.success) {
-        alert(
-          `Article ${isDraft ? "saved as draft" : "published"} successfully!`
-        );
-        navigate("/admin/article-management");
+        setAlert({ // EDIT: success alert instead of window.alert
+          show: true,
+          type: "success",
+          message: isDraft ? "Draft saved" : "Article published",
+          content: "Redirecting to article management...",
+        });
+        setTimeout(() => navigate("/admin/article-management"), 1500); // EDIT
       } else {
-        alert(`Error: ${result.error}`);
+        setAlert({ // EDIT: error alert
+          show: true,
+          type: "error",
+          message: "Failed to save article",
+          content: result.error || "Please try again.",
+        });
       }
     } catch (error) {
-      alert("An unexpected error occurred");
       console.error("Submit error:", error);
+      setAlert({ // EDIT
+        show: true,
+        type: "error",
+        message: "Unexpected error",
+        content: "An unexpected error occurred.",
+      });
     } finally {
       setLoading(false);
     }
@@ -153,6 +219,15 @@ const CreateArticle = () => {
 
   return (
     <div>
+      {alert.show && ( // EDIT: render shared Alert
+        <Alert
+          type={alert.type}
+          message={alert.message}
+          content={alert.content}
+          onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
+          variant="fixed"
+        />
+      )}
       <div className="flex justify-between items-center pb-8 mb-4 mt-4 border-b">
         <h1 className="text-2xl font-bold">Create article</h1>
         <div className="flex gap-6">

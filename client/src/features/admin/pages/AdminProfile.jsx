@@ -5,12 +5,18 @@ import { Input } from "@/components/ui/input";
 import { User } from "lucide-react";
 import axios from "axios";
 import { useImageUpload } from "@/hooks/uploadProfilePic";
+import { Alert } from "@/components/ui/alert"; // EDIT: use shared Alert (Login-like UX)
 
 const AdminProfile = () => {
   const { state, fetchUser } = useAuth();
   const { user } = state;
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [alert, setAlert] = useState({ // EDIT: unified alert state
+    show: false,
+    type: "info",
+    message: "",
+    content: "",
+  });
   const [profileData, setProfileData] = useState({
     name: "",
     username: "",
@@ -27,6 +33,24 @@ const AdminProfile = () => {
     error: uploadError,
     setError: setUploadError,
   } = useImageUpload();
+
+  useEffect(() => { // EDIT: auto-hide success alerts
+    if (alert.show && alert.type === "success") {
+      const t = setTimeout(() => setAlert((p) => ({ ...p, show: false })), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [alert.show, alert.type]);
+
+  useEffect(() => { // EDIT: surface upload errors via Alert
+    if (uploadError) {
+      setAlert({
+        show: true,
+        type: "error",
+        message: "Action failed",
+        content: uploadError,
+      });
+    }
+  }, [uploadError]);
 
   useEffect(() => {
     if (user) {
@@ -56,6 +80,7 @@ const AdminProfile = () => {
       ...prev,
       [name]: value,
     }));
+    if (alert.show) setAlert((p) => ({ ...p, show: false })); // EDIT: hide alert on edit
   };
 
   const handleImageUpload = async (e) => {
@@ -87,7 +112,7 @@ const AdminProfile = () => {
 
   const handleSave = async () => {
     setLoading(true);
-    setSuccessMessage("");
+    setAlert({ show: false, type: "info", message: "", content: "" }); // EDIT: reset alert
     setUploadError("");
 
     try {
@@ -108,12 +133,16 @@ const AdminProfile = () => {
 
       if (response.data.success) {
         await fetchUser();
-        setSuccessMessage("Your profile has been successfully updated");
-        setTimeout(() => setSuccessMessage(""), 5000);
+        setAlert({ // EDIT: success alert instead of custom banner
+          show: true,
+          type: "success",
+          message: "Saved profile",
+          content: "Your profile has been successfully updated.",
+        });
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      setUploadError("Failed to update profile. Please try again.");
+      setUploadError("Failed to update profile. Please try again."); // EDIT: will be surfaced via Alert
     } finally {
       setLoading(false);
     }
@@ -121,6 +150,15 @@ const AdminProfile = () => {
 
   return (
     <div className="w-full">
+      {alert.show && ( // EDIT: render shared Alert
+        <Alert
+          type={alert.type}
+          message={alert.message}
+          content={alert.content}
+          onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
+          variant="fixed"
+        />
+      )}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-semibold text-gray-800">Profile</h1>
         <Button
@@ -131,18 +169,7 @@ const AdminProfile = () => {
           {loading ? "Saving..." : "Save"}
         </Button>
       </div>
-
-      {uploadError && (
-        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between animate-in slide-in-from-top-2">
-          <span className="text-sm">{uploadError}</span>
-          <button
-            onClick={() => setUploadError("")}
-            className="text-red-700 hover:text-red-900 ml-4 font-bold"
-          >
-            ✕
-          </button>
-        </div>
-      )}
+      {/* uploadError is now surfaced via shared Alert for consistent UX */} {/* EDIT */}
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
         <div className="p-8">
@@ -263,49 +290,7 @@ const AdminProfile = () => {
         </div>
       </div>
 
-      {successMessage && (
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5">
-          <div className="bg-green-500 text-white px-6 py-4 rounded-lg shadow-xl flex items-center gap-4 min-w-[420px]">
-            <div className="flex-shrink-0">
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M5 13l4 4L19 7"
-                ></path>
-              </svg>
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold text-base">Saved profile</p>
-              <p className="text-sm text-green-50 mt-0.5">{successMessage}</p>
-            </div>
-            <button
-              onClick={() => setSuccessMessage("")}
-              className="text-white hover:text-green-100 transition-colors flex-shrink-0 ml-2"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                ></path>
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
+      {/* success is now surfaced via shared Alert for consistent UX */} {/* EDIT */}
     </div>
   );
 };

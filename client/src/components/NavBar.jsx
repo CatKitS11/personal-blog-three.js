@@ -98,7 +98,15 @@ const NavBar = () => {
                 </svg>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 bg-white">
-                <DropdownMenuItem onClick={() => navigate("/profile")}>
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (user?.role === "admin") {
+                      navigate("/admin/profile");
+                    } else {
+                      navigate("/profile");
+                    }
+                  }}
+                >
                   <User className="w-4 h-4 mr-2" />
                   Profile
                 </DropdownMenuItem>

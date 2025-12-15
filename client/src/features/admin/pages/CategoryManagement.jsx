@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react"; // EDIT: add useEffect for auto-hide success alert
 import { Search, Edit, Trash2, Plus, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAdminCategories } from "@/hooks/useAdminCategores";
+import { Alert } from "@/components/ui/alert"; // EDIT: use shared Alert like Login page
 
 const CategoryManagement = () => {
   const { categories, loading, error, deleteCategory } = useAdminCategories();
@@ -11,6 +12,19 @@ const CategoryManagement = () => {
     categoryId: null,
     categoryName: "",
   });
+  const [alert, setAlert] = useState({ // EDIT: unified alert state
+    show: false,
+    type: "info",
+    message: "",
+    content: "",
+  });
+
+  useEffect(() => { // EDIT: auto-hide success alerts
+    if (alert.show && alert.type === "success") {
+      const t = setTimeout(() => setAlert((p) => ({ ...p, show: false })), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [alert.show, alert.type]);
 
   const filtered = useMemo(() => {
     return categories.filter((c) =>
@@ -29,11 +43,34 @@ const CategoryManagement = () => {
   const confirmDelete = async () => {
     const res = await deleteCategory(deleteModal.categoryId);
     handleCloseDelete();
-    if (!res.success) alert(res.error);
+    if (res.success) { // EDIT: show success via Alert
+      setAlert({
+        show: true,
+        type: "success",
+        message: "Category deleted",
+        content: "The category has been deleted successfully.",
+      });
+      return;
+    }
+    setAlert({ // EDIT: show error via Alert
+      show: true,
+      type: "error",
+      message: "Failed to delete category",
+      content: res.error || "Please try again.",
+    });
   };
 
   return (
     <div>
+      {alert.show && ( // EDIT: render shared Alert
+        <Alert
+          type={alert.type}
+          message={alert.message}
+          content={alert.content}
+          onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
+          variant="fixed"
+        />
+      )}
       {deleteModal.open && (
         <>
           <div

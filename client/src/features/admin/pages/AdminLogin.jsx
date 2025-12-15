@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react"; // EDIT: add useEffect for auto-hide success alert
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/authentication";
 import { useNavigate } from "react-router-dom";
+import { Alert } from "@/components/ui/alert"; // EDIT: use shared Alert like Login page
 
 const AdminLogin = () => {
   const { login, state } = useAuth();
@@ -12,25 +13,63 @@ const AdminLogin = () => {
     email: "",
     password: "",
   });
+  const [alert, setAlert] = useState({ // EDIT: add alert state (Login-like)
+    show: false,
+    type: "error",
+    message: "",
+    content: "",
+  });
 
   const onChange = (e) => {
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+    if (alert.show) setAlert((prev) => ({ ...prev, show: false })); // EDIT: hide alert when typing
   };
+
+  useEffect(() => { // EDIT: auto-hide success alert
+    if (alert.show && alert.type === "success") {
+      const t = setTimeout(() => setAlert((p) => ({ ...p, show: false })), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [alert.show, alert.type]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    setAlert({ show: false, type: "error", message: "", content: "" }); // EDIT: reset previous alert
     const result = await login({
       email: form.email,
       password: form.password,
     });
 
-    if (!result?.error) {
-      navigate("/admin");
+    if (result?.error) { // EDIT: show error via Alert (consistent UX)
+      setAlert({
+        show: true,
+        type: "error",
+        message: "Login failed",
+        content: result.error,
+      });
+      return;
     }
+
+    setAlert({ // EDIT: show success and redirect
+      show: true,
+      type: "success",
+      message: "Login successful!",
+      content: "Redirecting to admin dashboard...",
+    });
+    setTimeout(() => navigate("/admin"), 1500); // EDIT
   };
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {alert.show && ( // EDIT: render shared Alert
+        <Alert
+          type={alert.type}
+          message={alert.message}
+          content={alert.content}
+          onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
+          variant="fixed"
+        />
+      )}
       <div className="max-w-sm w-full space-y-8">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-gray-900">
@@ -40,11 +79,7 @@ const AdminLogin = () => {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={onSubmit}>
-          {state.error && (
-            <div className="bg-red-50 text-red-500 p-3 rounded text-sm text-center">
-              {state.error}
-            </div>
-          )}
+          {/* state.error is now surfaced via Alert for consistent UX */} {/* EDIT */}
 
           <div className="rounded-md shadow-sm space-y-4">
             <div>
