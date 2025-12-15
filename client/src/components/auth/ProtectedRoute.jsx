@@ -1,6 +1,6 @@
 // /* eslint-disable react/prop-types */
 import { Navigate } from "react-router-dom";
-import LoadingScreen from "@/components/LoadingScreen";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 
 function ProtectedRoute({
   isLoading,

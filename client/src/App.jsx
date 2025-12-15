@@ -1,25 +1,24 @@
 import "./App.css";
 import NavBar from "./components/NavBar";
-import HeroSection from "@/components/HeroSection";
-import ArticleSection from "./components/ArticleSection";
 import Footer from "./components/Footer";
 import { Routes, Route, useLocation } from "react-router-dom";
-import BlogDetail from "./components/BlogDetail";
-import SignUp from "./components/SignUp";
-import SignUpSuccess from "./components/SignUpSuccess";
-import Login from "./components/Login";
-import AdminLayout from "@/components/pages/admin/AdminLayout";
-import ArticleManagement from "@/components/pages/admin/ArticleManagement";
-import CategoryManagement from "@/components/pages/admin/CategoryManagement";
-import AdminProfile from "@/components/pages/admin/AdminProfile";
-import Notification from "@/components/pages/admin/Notification";
-import CreateArticle from "@/components/pages/admin/CreateArticle";
-import EditArticle from "@/components/pages/admin/EditArticle";
-import CreateCategory from "@/components/pages/admin/CreateCategory";
-import EditCategory from "@/components/pages/admin/EditCategory";
-import AdminResetPassword from "@/components/pages/admin/AdminResetPassword";
-import Profile from "@/components/pages/Profile";
-import ResetPassword from "@/components/pages/ResetPassword";
+import HomePage from "@/pages/HomePage";
+import BlogDetailPage from "@/pages/BlogDetailPage";
+import SignUpPage from "@/pages/auth/SignUpPage";
+import SignUpSuccessPage from "@/pages/auth/SignUpSuccessPage";
+import LoginPage from "@/pages/auth/LoginPage";
+import ProfilePage from "@/pages/ProfilePage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
+import AdminLayoutPage from "@/pages/admin/AdminLayoutPage";
+import ArticleManagementPage from "@/pages/admin/ArticleManagementPage";
+import CategoryManagementPage from "@/pages/admin/CategoryManagementPage";
+import CreateArticlePage from "@/pages/admin/CreateArticlePage";
+import EditArticlePage from "@/pages/admin/EditArticlePage";
+import CreateCategoryPage from "@/pages/admin/CreateCategoryPage";
+import EditCategoryPage from "@/pages/admin/EditCategoryPage";
+import AdminProfilePage from "@/pages/admin/AdminProfilePage";
+import NotificationPage from "@/pages/admin/NotificationPage";
+import AdminResetPasswordPage from "@/pages/admin/AdminResetPasswordPage";
 
 import { useAuth } from "./contexts/authentication";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -45,16 +44,11 @@ function App() {
         {/* 🌟 หน้าแรก - ไม่ต้อง protect */}
         <Route
           path="/"
-          element={
-            <div>
-              <HeroSection />
-              <ArticleSection />
-            </div>
-          }
+          element={<HomePage />}
         />
 
         {/* 📖 Blog Detail - ไม่ต้อง protect */}
-        <Route path="/post/:postId" element={<BlogDetail />} />
+        <Route path="/post/:postId" element={<BlogDetailPage />} />
 
         {/* 🔐 Login/Signup - ใช้ AuthenticationRoute (ถ้า login แล้วจะ redirect ตาม role) */}
         <Route
@@ -64,15 +58,12 @@ function App() {
               isLoading={state.getUserLoading}
               isAuthenticated={isAuthenticated}
             >
-              <SignUp />
+              <SignUpPage />
             </AuthenticationRoute>
           }
         />
 
-        <Route
-          path="/sign-up/success"
-          element={<SignUpSuccess />}
-        />
+        <Route path="/sign-up/success" element={<SignUpSuccessPage />} />
 
         <Route
           path="/login"
@@ -81,7 +72,7 @@ function App() {
               isLoading={state.getUserLoading}
               isAuthenticated={isAuthenticated}
             >
-              <Login />
+              <LoginPage />
             </AuthenticationRoute>
           }
         />
@@ -95,7 +86,7 @@ function App() {
               userRole={state.user?.role}
               requiredRole="user"
             >
-              <Profile />
+              <ProfilePage />
             </ProtectedRoute>
           }
         />
@@ -108,7 +99,7 @@ function App() {
               userRole={state.user?.role}
               requiredRole="user"
             >
-              <ResetPassword />
+              <ResetPasswordPage />
             </ProtectedRoute>
           }
         />
@@ -123,29 +114,29 @@ function App() {
               userRole={state.user?.role}
               requiredRole="admin"
             >
-              <AdminLayout />
+              <AdminLayoutPage />
             </ProtectedRoute>
           }
         >
-          <Route index element={<ArticleManagement />} />
-          <Route path="article-management" element={<ArticleManagement />} />
-          <Route path="article-management/create" element={<CreateArticle />} />
+          <Route index element={<ArticleManagementPage />} />
+          <Route path="article-management" element={<ArticleManagementPage />} />
+          <Route path="article-management/create" element={<CreateArticlePage />} />
           <Route
             path="article-management/edit/:postId"
-            element={<EditArticle />}
+            element={<EditArticlePage />}
           />
-          <Route path="category-management" element={<CategoryManagement />} />
+          <Route path="category-management" element={<CategoryManagementPage />} />
           <Route
             path="category-management/create"
-            element={<CreateCategory />}
+            element={<CreateCategoryPage />}
           />
           <Route
             path="category-management/edit/:categoryId"
-            element={<EditCategory />}
+            element={<EditCategoryPage />}
           />
-          <Route path="/admin/profile" element={<AdminProfile />} />
-          <Route path="notification" element={<Notification />} />
-          <Route path="reset-password" element={<AdminResetPassword />} />
+          <Route path="/admin/profile" element={<AdminProfilePage />} />
+          <Route path="notification" element={<NotificationPage />} />
+          <Route path="reset-password" element={<AdminResetPasswordPage />} />
         </Route>
       </Routes>
 

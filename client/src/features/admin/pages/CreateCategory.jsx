@@ -1,0 +1,75 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft } from "lucide-react";
+import { useAdminCategories } from "@/hooks/useAdminCategores";
+
+const CreateCategory = () => {
+  const navigate = useNavigate();
+  const { createCategory } = useAdminCategories();
+  const [categoryName, setCategoryName] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSave = async () => {
+    if (!categoryName.trim()) {
+      setError("Category name is required");
+      return;
+    }
+
+    const res = await createCategory(categoryName.trim());
+    if (res.success) {
+      navigate("/admin/category-management");
+    } else {
+      setError(res.error || "Failed to create category");
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center pb-8 mb-4 mt-4 border-b">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate("/admin/category-management")}
+            className="text-gray-600 hover:text-gray-800"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-2xl font-bold">Create category</h1>
+        </div>
+        <Button
+          onClick={handleSave}
+          className="px-10 py-3 bg-[#333333] text-white rounded-full hover:bg-[#2a2a2a] transition-colors"
+        >
+          Save
+        </Button>
+      </div>
+
+      <div className="bg-white p-8 rounded-lg shadow-sm max-w-2xl">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-[#75716B] mb-2">
+              Category name
+            </label>
+            <Input
+              type="text"
+              placeholder="Category name"
+              value={categoryName}
+              onChange={(e) => {
+                setCategoryName(e.target.value);
+                setError("");
+              }}
+              onKeyPress={(e) => e.key === "Enter" && handleSave()}
+              className="w-full"
+            />
+            {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CreateCategory;
+
+
