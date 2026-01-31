@@ -19,15 +19,11 @@ app.get('/test', (req, res) => {
   res.status(200).json({ message: 'API running' });
 });
 
-// ไม่ต้องมี static file serving แล้ว
-// เพราะรูปจะอยู่ใน Supabase Storage
-
 app.use('/posts', postRouter);
 app.use('/auth', authRouter);
 app.use('/upload', uploadRouter);
 app.use('/categories', categoryRouter);
 
-// Graceful shutdown
 process.on('SIGINT', async () => {
   process.exit(0);
 });

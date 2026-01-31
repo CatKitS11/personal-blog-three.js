@@ -21,12 +21,8 @@ function jwtInterceptor() {
       const msg = error?.response?.data?.error || "";
 
       if (status === 401 && typeof msg === "string" && msg.includes("Unauthorized")) {
-        window.localStorage.removeItem("token"); // EDIT
-        window.localStorage.removeItem("userRole"); // EDIT
-
-        // EDIT: อย่าเด้งกลับ "/" เสมอไป (ทำให้หน้า public เช่น BlogDetail เด้ง)
-        // ปล่อยให้ ProtectedRoute จัดการ redirect เองตอนเข้า route ที่ต้อง login
-        // window.location.replace("/"); // EDIT: remove this
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("userRole");
       }
 
       return Promise.reject(error);
